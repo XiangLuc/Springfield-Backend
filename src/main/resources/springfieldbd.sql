@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3307
--- Généré le : lun. 12 oct. 2026 à 13:53
+-- Généré le : mer. 14 oct. 2026 à 08:21
 -- Version du serveur : 10.10.2-MariaDB
 -- Version de PHP : 8.0.26
 
@@ -29,12 +29,12 @@ SET time_zone = "+00:00";
 
 DROP TABLE IF EXISTS `equipement`;
 CREATE TABLE IF NOT EXISTS `equipement` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `reference` varchar(30) NOT NULL,
   `libelle` varchar(100) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `type_id` bigint(20) NOT NULL,
-  `station_id` bigint(20) NOT NULL,
+  `type_id` int(11) NOT NULL,
+  `station_id` int(11) NOT NULL,
   `etat` enum('EN_SERVICE','DEGRADE','HORS_SERVICE') NOT NULL DEFAULT 'EN_SERVICE',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_equipement_reference` (`reference`),
@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS `equipement` (
 
 DROP TABLE IF EXISTS `evaluation`;
 CREATE TABLE IF NOT EXISTS `evaluation` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `incident_id` bigint(20) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `incident_id` int(11) NOT NULL,
   `note` tinyint(4) NOT NULL,
   `commentaire` varchar(500) DEFAULT NULL,
   `date_evaluation` datetime NOT NULL DEFAULT current_timestamp(),
@@ -67,12 +67,12 @@ CREATE TABLE IF NOT EXISTS `evaluation` (
 
 DROP TABLE IF EXISTS `incident`;
 CREATE TABLE IF NOT EXISTS `incident` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `equipement_id` bigint(20) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `equipement_id` int(11) NOT NULL,
   `description` varchar(500) NOT NULL,
   `date_ouverture` datetime NOT NULL DEFAULT current_timestamp(),
   `statut` enum('OUVERT','AFFECTE','RESOLU') NOT NULL DEFAULT 'OUVERT',
-  `prestataire_id` bigint(20) DEFAULT NULL,
+  `prestataire_id` int(11) DEFAULT NULL,
   `date_resolution` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_incident_equipement` (`equipement_id`),
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `incident` (
 
 DROP TABLE IF EXISTS `prestataire`;
 CREATE TABLE IF NOT EXISTS `prestataire` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   `email` varchar(150) DEFAULT NULL,
   `telephone` varchar(20) DEFAULT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `prestataire` (
 
 DROP TABLE IF EXISTS `station`;
 CREATE TABLE IF NOT EXISTS `station` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `nom` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_station_nom` (`nom`)
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `station` (
 
 DROP TABLE IF EXISTS `type_equipement`;
 CREATE TABLE IF NOT EXISTS `type_equipement` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `libelle` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_type_equipement_libelle` (`libelle`)
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `type_equipement` (
 
 DROP TABLE IF EXISTS `utilisateur`;
 CREATE TABLE IF NOT EXISTS `utilisateur` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `login` varchar(50) NOT NULL,
   `mot_de_passe_hash` varchar(100) NOT NULL,
   `prenom` varchar(50) NOT NULL,
