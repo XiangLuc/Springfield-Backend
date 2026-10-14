@@ -28,7 +28,13 @@ import java.nio.charset.StandardCharsets;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-    private static final String[] ROUTES_PUBLIQUES = {"/api/auth/**", "/error"};
+    private static final String[] ROUTES_PUBLIQUES = {
+            "/api/auth/**",
+            "/error",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs/**"
+    };
     private static final String ALGORITHME_CLE = "HmacSHA256";
 
     // Configuration Argon2id minimale recommandée par l'OWASP
