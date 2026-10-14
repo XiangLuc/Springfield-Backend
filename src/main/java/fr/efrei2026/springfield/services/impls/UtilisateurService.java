@@ -9,6 +9,7 @@ import fr.efrei2026.springfield.shared.dto.InscriptionDto;
 import fr.efrei2026.springfield.shared.dto.TokenDto;
 import fr.efrei2026.springfield.utiles.exceptions.IdentifiantInvalideException;
 import fr.efrei2026.springfield.utiles.exceptions.LoginExistantException;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,7 @@ public class UtilisateurService implements IUtilisateurService {
         return new TokenDto(jwtService.genererJeton(utilisateur));
     }
 
+    @Transactional
     @Override
     public TokenDto inscrire(InscriptionDto inscription) {
         if (utilisateurRepository.existsByLogin(inscription.getLogin())) {
