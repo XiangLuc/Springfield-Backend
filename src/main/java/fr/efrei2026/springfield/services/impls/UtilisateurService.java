@@ -6,42 +6,44 @@ import fr.efrei2026.springfield.modeles.repositories.UtilisateurRepository;
 import fr.efrei2026.springfield.services.interfaces.IUtilisateurService;
 import fr.efrei2026.springfield.shared.dto.ConnexionDto;
 import fr.efrei2026.springfield.shared.dto.InscriptionDto;
-import fr.efrei2026.springfield.shared.dto.TokenDto;
 import fr.efrei2026.springfield.utiles.exceptions.IdentifiantInvalideException;
 import fr.efrei2026.springfield.utiles.exceptions.LoginExistantException;
-import jakarta.transaction.Transactional;
+import fr.efrei2026.springfield.utiles.exceptions.UtilisateurIntrouvableException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UtilisateurService implements IUtilisateurService {
 
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
 
-    public UtilisateurService(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public UtilisateurService(UtilisateurRepository utilisateurRepository, PasswordEncoder passwordEncoder) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
     }
 
     @Override
-    public TokenDto connecter(ConnexionDto connexion) {
-        Utilisateur utilisateur = utilisateurRepository.findByLogin(connexion.getLogin())
+    public Utilisateur connecter(ConnexionDto connexion) {
+        return utilisateurRepository.findByLogin(connexion.getLogin())
                 .filter(trouve -> passwordEncoder.matches(connexion.getMotDePasse(), trouve.getMotDePasse()))
                 .orElseThrow(IdentifiantInvalideException::new);
-        return new TokenDto(jwtService.genererJeton(utilisateur));
     }
 
     @Transactional
     @Override
-    public TokenDto inscrire(InscriptionDto inscription) {
+    public Utilisateur inscrire(InscriptionDto inscription) {
         if (utilisateurRepository.existsByLogin(inscription.getLogin())) {
-            throw new LoginExistantException();
+            throw new LoginExistantException(inscription.getLogin());
         }
-        Utilisateur utilisateur = utilisateurRepository.save(creerUtilisateurAgent(inscription));
-        return new TokenDto(jwtService.genererJeton(utilisateur));
+        return utilisateurRepository.save(creerUtilisateurAgent(inscription));
+    }
+
+    @Override
+    public Utilisateur trouverParLogin(String login) {
+        return utilisateurRepository.findByLogin(login)
+                .orElseThrow(() -> new UtilisateurIntrouvableException(login));
     }
 
     private Utilisateur creerUtilisateurAgent(InscriptionDto inscription) {

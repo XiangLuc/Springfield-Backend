@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 
 public class ConnexionDto {
 
-    @NotBlank
+    @NotBlank(message = "L'identifiant est obligatoire.")
     private String login;
 
-    @NotBlank
+    @NotBlank(message = "Le mot de passe est obligatoire.")
     private String motDePasse;
 
     public String getLogin() {

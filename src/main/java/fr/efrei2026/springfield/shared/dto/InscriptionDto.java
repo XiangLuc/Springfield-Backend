@@ -5,16 +5,16 @@ import jakarta.validation.constraints.Size;
 
 public class InscriptionDto {
 
-    @NotBlank
-    @Size(max = 50)
+    @NotBlank(message = "L'identifiant est obligatoire.")
+    @Size(max = 50, message = "L'identifiant ne doit pas dépasser 50 caractères.")
     private String login;
 
-    @NotBlank
-    @Size(min = 15, max = 128)
+    @NotBlank(message = "Le mot de passe est obligatoire.")
+    @Size(min = 15, max = 128, message = "Le mot de passe doit contenir entre 15 et 128 caractères.")
     private String motDePasse;
 
-    @NotBlank
-    @Size(max = 50)
+    @NotBlank(message = "Le prénom est obligatoire.")
+    @Size(max = 50, message = "Le prénom ne doit pas dépasser 50 caractères.")
     private String prenom;
 
     public String getLogin() {

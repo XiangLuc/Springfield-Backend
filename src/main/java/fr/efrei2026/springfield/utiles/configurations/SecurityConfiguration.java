@@ -1,13 +1,14 @@
 package fr.efrei2026.springfield.utiles.configurations;
 
+import fr.efrei2026.springfield.utiles.configurations.security.CsrfCookieFilter;
 import fr.efrei2026.springfield.utiles.configurations.security.JwtFilter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,8 +18,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -29,7 +31,9 @@ import java.nio.charset.StandardCharsets;
 public class SecurityConfiguration {
 
     private static final String[] ROUTES_PUBLIQUES = {
-            "/api/auth/**",
+            "/api/auth/connexion",
+            "/api/auth/info",
+            "/api/auth/deconnexion",
             "/error",
             "/swagger-ui.html",
             "/swagger-ui/**",
@@ -45,22 +49,27 @@ public class SecurityConfiguration {
     private static final int ARGON2_ITERATIONS = 2;
 
     private final SecretKey cleJwt;
+    private final HandlerExceptionResolver gestionnaireErreurs;
 
-    public SecurityConfiguration(@Value("${jwt.secret}") String secretJwt) {
+    public SecurityConfiguration(@Value("${jwt.secret}") String secretJwt, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver gestionnaireErreurs) {
         this.cleJwt = new SecretKeySpec(secretJwt.getBytes(StandardCharsets.UTF_8), ALGORITHME_CLE);
+        this.gestionnaireErreurs = gestionnaireErreurs;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // CSRF désactivé car on utilise pas de cookie de session
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(CsrfConfigurer::spa)
                 .authorizeHttpRequests(acces -> acces
                         .requestMatchers(ROUTES_PUBLIQUES).permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(erreurs -> erreurs
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                        .authenticationEntryPoint((requete, reponse, exception) ->
+                                gestionnaireErreurs.resolveException(requete, reponse, null, exception))
+                        .accessDeniedHandler((requete, reponse, exception) ->
+                                gestionnaireErreurs.resolveException(requete, reponse, null, exception)))
+                .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
                 .addFilterBefore(new JwtFilter(jwtDecoder()), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
