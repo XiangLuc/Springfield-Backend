@@ -3,7 +3,7 @@ package fr.efrei2026.springfield.services;
 import fr.efrei2026.springfield.exceptions.EquipementIntrouvableException;
 import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
-import fr.efrei2026.springfield.modeles.StatutIncident;
+import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import fr.efrei2026.springfield.repositories.EquipementRepository;
 import fr.efrei2026.springfield.repositories.IncidentRepository;
 import org.springframework.stereotype.Service;

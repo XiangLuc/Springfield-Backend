@@ -1,4 +1,4 @@
-package fr.efrei2026.springfield.modeles;
+package fr.efrei2026.springfield.modeles.enums;
 
 public enum StatutIncident {
 

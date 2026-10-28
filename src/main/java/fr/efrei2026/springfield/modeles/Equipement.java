@@ -1,5 +1,6 @@
 package fr.efrei2026.springfield.modeles;
 
+import fr.efrei2026.springfield.modeles.enums.EtatEquipement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,13 +1,17 @@
 package fr.efrei2026.springfield.controllers;
 
+import fr.efrei2026.springfield.modeles.Equipement;
+import fr.efrei2026.springfield.modeles.Incident;
 import fr.efrei2026.springfield.services.EquipementService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.List;
+
+@RestController
 @RequestMapping("/equipements")
 public class EquipementController {
 
@@ -18,10 +22,17 @@ public class EquipementController {
     }
 
     @GetMapping("/{id}")
-    public String afficherFicheEquipement(@PathVariable Integer id, Model model) {
-        model.addAttribute("equipement", equipementService.trouverEquipement(id));
-        model.addAttribute("incidentsEnCours", equipementService.listerIncidentsEnCours(id));
-        model.addAttribute("incidentsPasses", equipementService.listerIncidentsPasses(id));
-        return "equipements/fiche";
+    public ResponseEntity<Equipement> trouverEquipement(@PathVariable Integer id) {
+        return ResponseEntity.ok(equipementService.trouverEquipement(id));
+    }
+
+    @GetMapping("/{id}/incidents/en-cours")
+    public ResponseEntity<List<Incident>> listerIncidentsEnCours(@PathVariable Integer id) {
+        return ResponseEntity.ok(equipementService.listerIncidentsEnCours(id));
+    }
+
+    @GetMapping("/{id}/incidents/passes")
+    public ResponseEntity<List<Incident>> listerIncidentsPasses(@PathVariable Integer id) {
+        return ResponseEntity.ok(equipementService.listerIncidentsPasses(id));
     }
 }

@@ -1,7 +1,7 @@
 package fr.efrei2026.springfield.repositories;
 
 import fr.efrei2026.springfield.modeles.Incident;
-import fr.efrei2026.springfield.modeles.StatutIncident;
+import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

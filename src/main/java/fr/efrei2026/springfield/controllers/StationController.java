@@ -1,14 +1,18 @@
 package fr.efrei2026.springfield.controllers;
 
+import fr.efrei2026.springfield.modeles.Equipement;
+import fr.efrei2026.springfield.modeles.Station;
 import fr.efrei2026.springfield.services.EquipementService;
 import fr.efrei2026.springfield.services.StationService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.List;
+
+@RestController
 @RequestMapping("/stations")
 public class StationController {
 
@@ -21,15 +25,17 @@ public class StationController {
     }
 
     @GetMapping
-    public String afficherStations(Model model) {
-        model.addAttribute("stations", stationService.listerStations());
-        return "stations/liste";
+    public ResponseEntity<List<Station>> listerStations() {
+        return ResponseEntity.ok(stationService.listerStations());
     }
 
     @GetMapping("/{id}")
-    public String afficherEquipementsDeLaStation(@PathVariable Integer id, Model model) {
-        model.addAttribute("station", stationService.trouverStation(id));
-        model.addAttribute("equipements", equipementService.listerEquipementsDeLaStation(id));
-        return "stations/equipements";
+    public ResponseEntity<Station> trouverStation(@PathVariable Integer id) {
+        return ResponseEntity.ok(stationService.trouverStation(id));
+    }
+
+    @GetMapping("/{id}/equipements")
+    public ResponseEntity<List<Equipement>> listerEquipementsDeLaStation(@PathVariable Integer id) {
+        return ResponseEntity.ok(equipementService.listerEquipementsDeLaStation(id));
     }
 }
