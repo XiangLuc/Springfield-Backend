@@ -34,6 +34,7 @@ public class SecurityConfiguration {
             "/api/auth/connexion",
             "/api/auth/info",
             "/api/auth/deconnexion",
+            "/api/auth/inscription",
             "/error",
             "/swagger-ui.html",
             "/swagger-ui/**",

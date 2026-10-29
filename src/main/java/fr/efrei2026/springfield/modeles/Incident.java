@@ -1,5 +1,6 @@
 package fr.efrei2026.springfield.modeles;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,9 +24,11 @@ public class Incident {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "equipement_id")
     private Equipement equipement;
+
 
     @Column(nullable = false, length = 500)
     private String description;

@@ -45,7 +45,7 @@ public class AuthentificationController {
 
     @PostMapping("/inscription")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('RESPONSABLE_EXPLOITATION')")
+    /*@PreAuthorize("hasAuthority('RESPONSABLE_EXPLOITATION')")*/
     public UtilisateurDto inscrire(@Valid @RequestBody InscriptionDto inscription) {
         return new UtilisateurDto(utilisateurService.inscrire(inscription));
     }

@@ -15,7 +15,7 @@ public class TypeEquipement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(name = "libelle", nullable = false, unique = true, length = 50)
     private String nom;
 
     protected TypeEquipement() {

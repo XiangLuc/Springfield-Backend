@@ -1,6 +1,8 @@
 package fr.efrei2026.springfield.utiles.exceptions;
 
 import fr.efrei2026.springfield.utiles.exceptions.response.MessageErreurApi;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,8 +15,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
-
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GestionnaireErreurs {
 
     private static final String MESSAGE_CORPS_ILLISIBLE = "Le corps de la requête est absent ou mal formé.";
