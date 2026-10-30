@@ -2,8 +2,8 @@ package fr.efrei2026.springfield.controllers;
 
 import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Station;
-import fr.efrei2026.springfield.services.EquipementService;
-import fr.efrei2026.springfield.services.StationService;
+import fr.efrei2026.springfield.services.interfaces.IEquipementService;
+import fr.efrei2026.springfield.services.interfaces.IStationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,10 +16,10 @@ import java.util.List;
 @RequestMapping("/api/stations")
 public class StationController {
 
-    private final StationService stationService;
-    private final EquipementService equipementService;
+    private final IStationService stationService;
+    private final IEquipementService equipementService;
 
-    public StationController(StationService stationService, EquipementService equipementService) {
+    public StationController(IStationService stationService, IEquipementService equipementService) {
         this.stationService = stationService;
         this.equipementService = equipementService;
     }

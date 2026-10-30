@@ -2,7 +2,7 @@ package fr.efrei2026.springfield.controllers;
 
 import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
-import fr.efrei2026.springfield.services.EquipementService;
+import fr.efrei2026.springfield.services.interfaces.IEquipementService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,9 +15,9 @@ import java.util.List;
 @RequestMapping("/api/equipements")
 public class EquipementController {
 
-    private final EquipementService equipementService;
+    private final IEquipementService equipementService;
 
-    public EquipementController(EquipementService equipementService) {
+    public EquipementController(IEquipementService equipementService) {
         this.equipementService = equipementService;
     }
 
