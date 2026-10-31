@@ -3,12 +3,13 @@ package fr.efrei2026.springfield.services;
 import fr.efrei2026.springfield.exceptions.StationIntrouvableException;
 import fr.efrei2026.springfield.modeles.Station;
 import fr.efrei2026.springfield.repositories.StationRepository;
+import fr.efrei2026.springfield.services.interfaces.IStationService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class StationService {
+public class StationService implements IStationService {
 
     private final StationRepository stationRepository;
 

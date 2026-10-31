@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -58,6 +59,18 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    @Profile("dev")
+    public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
+        return http
+                .csrf(CsrfConfigurer::disable)
+                .authorizeHttpRequests(acces -> acces.anyRequest().permitAll())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(new JwtFilter(jwtDecoder()), UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+    @Bean
+    @Profile("!dev")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(CsrfConfigurer::spa)
