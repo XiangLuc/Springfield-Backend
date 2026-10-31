@@ -5,6 +5,7 @@ import fr.efrei2026.springfield.modeles.Station;
 import fr.efrei2026.springfield.services.interfaces.IEquipementService;
 import fr.efrei2026.springfield.services.interfaces.IStationService;
 import fr.efrei2026.springfield.shared.dto.ResultatImportCsvDto;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,7 +39,7 @@ public class StationController {
         return ResponseEntity.ok(equipementService.listerEquipementsDeLaStation(id));
     }
 
-    @PostMapping("/import")
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResultatImportCsvDto> importerStations(@RequestParam("fichier") MultipartFile fichier) {
         return ResponseEntity.ok(stationService.importerStations(fichier));
     }
