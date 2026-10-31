@@ -63,6 +63,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
         return http
                 .csrf(CsrfConfigurer::disable)
+                .anonymous(anonyme -> anonyme.authorities("RESPONSABLE_EXPLOITATION", "AGENT"))
                 .authorizeHttpRequests(acces -> acces.anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtFilter(jwtDecoder()), UsernamePasswordAuthenticationFilter.class)
