@@ -4,11 +4,10 @@ import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Station;
 import fr.efrei2026.springfield.services.interfaces.IEquipementService;
 import fr.efrei2026.springfield.services.interfaces.IStationService;
+import fr.efrei2026.springfield.shared.dto.ResultatImportCsvDto;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -37,5 +36,10 @@ public class StationController {
     @GetMapping("/{id}/equipements")
     public ResponseEntity<List<Equipement>> listerEquipementsDeLaStation(@PathVariable Integer id) {
         return ResponseEntity.ok(equipementService.listerEquipementsDeLaStation(id));
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<ResultatImportCsvDto> importerStations(@RequestParam("fichier") MultipartFile fichier) {
+        return ResponseEntity.ok(stationService.importerStations(fichier));
     }
 }
