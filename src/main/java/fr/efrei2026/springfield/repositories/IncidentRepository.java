@@ -20,4 +20,10 @@ public interface IncidentRepository extends JpaRepository<Incident, Integer> {
             """)
     List<Incident> trouverParEquipementEtStatuts(@Param("equipementId") Integer equipementId,
                                                  @Param("statuts") Collection<StatutIncident> statuts);
+
+    @Query("SELECT i FROM Incident i "
+            + "JOIN FETCH i.equipement e JOIN FETCH e.station "
+            + "LEFT JOIN FETCH i.prestataire "
+            + "WHERE i.statut = :statut ORDER BY i.dateResolution DESC")
+    List<Incident> findHistoriquePourExport(@Param("statut") StatutIncident statut);
 }
