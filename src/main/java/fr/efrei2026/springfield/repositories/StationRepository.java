@@ -8,4 +8,5 @@ import java.util.List;
 public interface StationRepository extends JpaRepository<Station, Integer> {
 
     List<Station> findAllByOrderByNomAsc();
+    boolean existsByNom(String nom);
 }
