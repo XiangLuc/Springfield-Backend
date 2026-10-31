@@ -22,4 +22,5 @@ public interface EquipementRepository extends JpaRepository<Equipement, Integer>
             where e.id = :id
             """)
     Optional<Equipement> trouverAvecTypeEtStation(@Param("id") Integer id);
+    boolean existsByReference(String reference);
 }
