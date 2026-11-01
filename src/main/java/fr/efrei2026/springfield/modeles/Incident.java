@@ -83,4 +83,12 @@ public class Incident {
     public LocalDateTime getDateResolution() {
         return dateResolution;
     }
+
+    public boolean estResolu() {
+        return statut == StatutIncident.RESOLU;
+    }
+
+    public boolean aUnPrestataire() {
+        return prestataire != null;
+    }
 }
