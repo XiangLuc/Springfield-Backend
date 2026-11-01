@@ -2,6 +2,7 @@ package fr.efrei2026.springfield.services;
 
 import fr.efrei2026.springfield.exceptions.IncidentDejaResoluException;
 import fr.efrei2026.springfield.exceptions.IncidentIntrouvableException;
+import fr.efrei2026.springfield.exceptions.TriInvalideException;
 import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
 import fr.efrei2026.springfield.modeles.Prestataire;
@@ -11,15 +12,22 @@ import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import fr.efrei2026.springfield.repositories.IncidentRepository;
 import fr.efrei2026.springfield.services.impls.IncidentService;
 import fr.efrei2026.springfield.shared.dto.IncidentDto;
+import fr.efrei2026.springfield.shared.dto.PageDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.StringWriter;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -42,6 +50,9 @@ class IncidentServiceTest {
     private static final String FIN_DE_LIGNE = "\r\n";
     private static final LocalDateTime MAINTENANT = LocalDateTime.of(2026, 11, 1, 10, 30);
     private static final int ID_INCIDENT = 7;
+    private static final Sort TRI_PAR_DEFAUT = Sort.by(Sort.Direction.DESC, "dateOuverture");
+    private static final Pageable PAGINATION = PageRequest.of(0, 20, TRI_PAR_DEFAUT);
+    private static final Pageable PAGINATION_AVEC_TRI_PAR_ID = PageRequest.of(0, 20, TRI_PAR_DEFAUT.and(Sort.by("id")));
 
     @Mock
     private IncidentRepository incidentRepository;
@@ -55,11 +66,73 @@ class IncidentServiceTest {
     }
 
     @Test
-    void listerIncidents_exposeEquipementStationStatutEtDuree() {
-        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(47));
-        when(incidentRepository.findAllByOrderByDateOuvertureDesc()).thenReturn(List.of(incident));
+    void rechercherIncidents_transmetLesFiltresEtInclutToutLeDernierJour() {
+        simulerRecherche(new PageImpl<>(List.of()));
 
-        IncidentDto dto = incidentService.listerIncidents().getFirst();
+        incidentService.rechercherIncidents(StatutIncident.AFFECTE, 1, 2,
+                LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31), "porte", PAGINATION);
+
+        verify(incidentRepository).rechercher(StatutIncident.AFFECTE, 1, 2,
+                LocalDateTime.of(2026, 10, 1, 0, 0), LocalDateTime.of(2026, 11, 1, 0, 0), "porte", PAGINATION_AVEC_TRI_PAR_ID);
+    }
+
+    @Test
+    void rechercherIncidents_sansFiltreNeRestreintRien() {
+        simulerRecherche(new PageImpl<>(List.of()));
+
+        incidentService.rechercherIncidents(null, null, null, null, null, null, PAGINATION);
+
+        verify(incidentRepository).rechercher(null, null, null, null, null, null, PAGINATION_AVEC_TRI_PAR_ID);
+    }
+
+    @Test
+    void rechercherIncidents_ignoreUnMotCleVide() {
+        simulerRecherche(new PageImpl<>(List.of()));
+
+        incidentService.rechercherIncidents(null, null, null, null, null, "   ", PAGINATION);
+
+        verify(incidentRepository).rechercher(null, null, null, null, null, null, PAGINATION_AVEC_TRI_PAR_ID);
+    }
+
+    @Test
+    void rechercherIncidents_retireLesEspacesAutourDuMotCle() {
+        simulerRecherche(new PageImpl<>(List.of()));
+
+        incidentService.rechercherIncidents(null, null, null, null, null, "  porte ", PAGINATION);
+
+        verify(incidentRepository).rechercher(null, null, null, null, null, "porte", PAGINATION_AVEC_TRI_PAR_ID);
+    }
+
+    @Test
+    void rechercherIncidents_refuseUnTriNonAutorise() {
+        Pageable triInterdit = PageRequest.of(0, 20, Sort.by("prestataire.nom"));
+
+        assertThrows(TriInvalideException.class, () ->
+                incidentService.rechercherIncidents(null, null, null, null, null, null, triInterdit));
+
+        verify(incidentRepository, never()).rechercher(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void rechercherIncidents_indiqueLaPaginationDuResultat() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT);
+        simulerRecherche(new PageImpl<>(List.of(incident), PageRequest.of(1, 2), 5));
+
+        PageDto<IncidentDto> page = incidentService.rechercherIncidents(null, null, null, null, null, null, PAGINATION);
+
+        assertEquals(1, page.getContenu().size());
+        assertEquals(1, page.getPage());
+        assertEquals(2, page.getTaille());
+        assertEquals(5, page.getTotalElements());
+        assertEquals(3, page.getTotalPages());
+    }
+
+    @Test
+    void rechercherIncidents_exposeEquipementStationStatutEtDuree() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(47));
+        simulerRecherche(new PageImpl<>(List.of(incident)));
+
+        IncidentDto dto = incidentService.rechercherIncidents(null, null, null, null, null, null, PAGINATION).getContenu().getFirst();
 
         assertEquals("Porte bloquée", dto.getDescription());
         assertEquals(StatutIncident.OUVERT, dto.getStatut());
@@ -169,6 +242,10 @@ class IncidentServiceTest {
         incidentService.exporterHistorique(sortie);
 
         assertArrayEquals(new String[]{ENTETE}, sortie.toString().split(FIN_DE_LIGNE));
+    }
+
+    private void simulerRecherche(Page<Incident> resultat) {
+        when(incidentRepository.rechercher(any(), any(), any(), any(), any(), any(), any())).thenReturn(resultat);
     }
 
     private Equipement creerEquipement(String reference, String nomStation) {
