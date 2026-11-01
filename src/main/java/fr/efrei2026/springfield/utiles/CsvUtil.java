@@ -22,6 +22,10 @@ public class CsvUtil {
     public CsvUtil() {}
 
     public static List<Map<String, String>> importerCsv(MultipartFile fichier) {
+        if (fichier.isEmpty()) {
+            throw new CsvException("Le fichier CSV est vide.");
+        }
+
         // configuration sur le format du fichier csv qu'on va traiter
         CSVFormat format = CSVFormat.DEFAULT.builder()
                 .setDelimiter(SEPARATEUR)
