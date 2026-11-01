@@ -1,6 +1,7 @@
 package fr.efrei2026.springfield.modeles;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.efrei2026.springfield.exceptions.IncidentDejaResoluException;
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -92,6 +93,14 @@ public class Incident {
 
     public boolean aUnPrestataire() {
         return prestataire != null;
+    }
+
+    public void resoudre(LocalDateTime dateResolution) {
+        if (estResolu()) {
+            throw new IncidentDejaResoluException(id);
+        }
+        this.statut = StatutIncident.RESOLU;
+        this.dateResolution = dateResolution;
     }
 
     public Duration dureeOuverture(Clock horloge) {
