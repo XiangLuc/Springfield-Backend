@@ -1,5 +1,7 @@
 package fr.efrei2026.springfield.services;
 
+import fr.efrei2026.springfield.exceptions.IncidentDejaResoluException;
+import fr.efrei2026.springfield.exceptions.IncidentIntrouvableException;
 import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
 import fr.efrei2026.springfield.modeles.Prestataire;
@@ -8,19 +10,29 @@ import fr.efrei2026.springfield.modeles.TypeEquipement;
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import fr.efrei2026.springfield.repositories.IncidentRepository;
 import fr.efrei2026.springfield.services.impls.IncidentService;
+import fr.efrei2026.springfield.shared.dto.IncidentDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.StringWriter;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,12 +40,100 @@ class IncidentServiceTest {
 
     private static final String ENTETE = "station;equipement;description;ouverture;resolution;prestataire";
     private static final String FIN_DE_LIGNE = "\r\n";
+    private static final LocalDateTime MAINTENANT = LocalDateTime.of(2026, 11, 1, 10, 30);
+    private static final int ID_INCIDENT = 7;
 
     @Mock
     private IncidentRepository incidentRepository;
 
-    @InjectMocks
     private IncidentService incidentService;
+
+    @BeforeEach
+    void creerServiceAvecHorlogeFixe() {
+        Clock horlogeFixe = Clock.fixed(MAINTENANT.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+        incidentService = new IncidentService(incidentRepository, horlogeFixe);
+    }
+
+    @Test
+    void listerIncidents_exposeEquipementStationStatutEtDuree() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(47));
+        when(incidentRepository.findAllByOrderByDateOuvertureDesc()).thenReturn(List.of(incident));
+
+        IncidentDto dto = incidentService.listerIncidents().getFirst();
+
+        assertEquals("Porte bloquée", dto.getDescription());
+        assertEquals(StatutIncident.OUVERT, dto.getStatut());
+        assertEquals("Non affecté", dto.getLibelleStatut());
+        assertEquals(47, dto.getDureeOuvertureEnHeures());
+        assertEquals("ASC-001", dto.getReferenceEquipement());
+        assertEquals("Gare du Nord", dto.getStation());
+        assertNull(dto.getPrestataire());
+        assertNull(dto.getDateResolution());
+    }
+
+    @Test
+    void trouverIncident_arreteLaDureeDUnIncidentResoluASaResolution() {
+        Incident incident = creerIncidentResolu(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée",
+                MAINTENANT.minusHours(100), MAINTENANT.minusHours(90), creerPrestataire());
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.of(incident));
+
+        IncidentDto dto = incidentService.trouverIncident(ID_INCIDENT);
+
+        assertEquals(10, dto.getDureeOuvertureEnHeures());
+        assertEquals("Otis Maintenance", dto.getPrestataire());
+    }
+
+    @Test
+    void trouverIncident_inconnuLeveUneExceptionIntrouvable() {
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.empty());
+
+        assertThrows(IncidentIntrouvableException.class, () -> incidentService.trouverIncident(ID_INCIDENT));
+    }
+
+    @Test
+    void resoudre_enregistreLeStatutResoluEtLaDateCourante() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(5));
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.of(incident));
+
+        IncidentDto dto = incidentService.resoudre(ID_INCIDENT);
+
+        assertEquals(StatutIncident.RESOLU, dto.getStatut());
+        assertEquals(MAINTENANT, dto.getDateResolution());
+        verify(incidentRepository).save(incident);
+    }
+
+    @Test
+    void resoudre_incidentAffecteConserveSonPrestataire() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(5));
+        ReflectionTestUtils.setField(incident, "statut", StatutIncident.AFFECTE);
+        ReflectionTestUtils.setField(incident, "prestataire", creerPrestataire());
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.of(incident));
+
+        IncidentDto dto = incidentService.resoudre(ID_INCIDENT);
+
+        assertEquals(StatutIncident.RESOLU, dto.getStatut());
+        assertEquals("Otis Maintenance", dto.getPrestataire());
+    }
+
+    @Test
+    void resoudre_incidentDejaResoluEstRefuseEtConserveSaDate() {
+        LocalDateTime dateResolution = MAINTENANT.minusHours(1);
+        Incident incident = creerIncidentResolu(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée",
+                MAINTENANT.minusHours(5), dateResolution, null);
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.of(incident));
+
+        assertThrows(IncidentDejaResoluException.class, () -> incidentService.resoudre(ID_INCIDENT));
+
+        assertEquals(dateResolution, incident.getDateResolution());
+        verify(incidentRepository, never()).save(any());
+    }
+
+    @Test
+    void resoudre_incidentInconnuLeveUneExceptionIntrouvable() {
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.empty());
+
+        assertThrows(IncidentIntrouvableException.class, () -> incidentService.resoudre(ID_INCIDENT));
+    }
 
     @Test
     void exporterHistorique_ecritUneLigneParIncidentResolu() {
