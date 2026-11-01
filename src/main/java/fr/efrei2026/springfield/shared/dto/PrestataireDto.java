@@ -9,9 +9,7 @@ public class PrestataireDto {
     private Double noteMoyenne;
     private long nombreEvaluations;
 
-    public PrestataireDto() {
-    }
-
+    // Un seul constructeur : Spring Data s'en sert pour construire ce DTO à partir de listerAvecNotes.
     public PrestataireDto(Integer id, String nom, String email, String telephone, Double noteMoyenne,
                           Long nombreEvaluations) {
         this.id = id;

@@ -14,6 +14,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -90,5 +92,10 @@ public class Incident {
 
     public boolean aUnPrestataire() {
         return prestataire != null;
+    }
+
+    public Duration dureeOuverture(Clock horloge) {
+        LocalDateTime finDeLaDuree = estResolu() ? dateResolution : LocalDateTime.now(horloge);
+        return Duration.between(dateOuverture, finDeLaDuree);
     }
 }
