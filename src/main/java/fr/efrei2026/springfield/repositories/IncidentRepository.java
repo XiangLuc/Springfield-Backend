@@ -12,6 +12,8 @@ import java.util.Optional;
 
 public interface IncidentRepository extends JpaRepository<Incident, Integer> {
 
+    List<Incident> findAllByOrderByDateOuvertureDesc();
+
     @Query("""
             SELECT i FROM Incident i
             WHERE i.statut <> :statut
