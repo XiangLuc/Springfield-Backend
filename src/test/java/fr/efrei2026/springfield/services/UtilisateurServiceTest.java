@@ -1,13 +1,13 @@
 package fr.efrei2026.springfield.services;
 
+import fr.efrei2026.springfield.exceptions.IdentifiantInvalideException;
+import fr.efrei2026.springfield.exceptions.UtilisateurIntrouvableException;
 import fr.efrei2026.springfield.modeles.Utilisateur;
 import fr.efrei2026.springfield.modeles.enums.Profil;
-import fr.efrei2026.springfield.modeles.repositories.UtilisateurRepository;
+import fr.efrei2026.springfield.repositories.UtilisateurRepository;
 import fr.efrei2026.springfield.services.impls.UtilisateurService;
 import fr.efrei2026.springfield.shared.dto.ConnexionDto;
 import fr.efrei2026.springfield.shared.dto.InscriptionDto;
-import fr.efrei2026.springfield.utiles.exceptions.IdentifiantInvalideException;
-import fr.efrei2026.springfield.utiles.exceptions.UtilisateurIntrouvableException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.password.PasswordEncoder;

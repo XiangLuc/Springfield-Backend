@@ -7,6 +7,7 @@ import fr.efrei2026.springfield.modeles.TypeEquipement;
 import fr.efrei2026.springfield.repositories.EquipementRepository;
 import fr.efrei2026.springfield.repositories.StationRepository;
 import fr.efrei2026.springfield.repositories.TypeEquipementRepository;
+import fr.efrei2026.springfield.services.impls.EquipementService;
 import fr.efrei2026.springfield.shared.dto.LigneCsvEchecDto;
 import fr.efrei2026.springfield.shared.dto.ResultatImportCsvDto;
 import org.junit.jupiter.api.BeforeEach;

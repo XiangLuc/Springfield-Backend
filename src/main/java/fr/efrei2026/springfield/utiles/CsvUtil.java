@@ -1,6 +1,6 @@
 package fr.efrei2026.springfield.utiles;
 
-import fr.efrei2026.springfield.utiles.exceptions.CsvException;
+import fr.efrei2026.springfield.exceptions.CsvException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;

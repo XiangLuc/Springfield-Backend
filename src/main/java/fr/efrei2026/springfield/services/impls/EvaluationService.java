@@ -5,7 +5,7 @@ import fr.efrei2026.springfield.exceptions.EvaluationIntrouvableException;
 import fr.efrei2026.springfield.exceptions.IncidentIntrouvableException;
 import fr.efrei2026.springfield.modeles.Evaluation;
 import fr.efrei2026.springfield.modeles.Incident;
-import fr.efrei2026.springfield.modeles.repositories.EvaluationRepository;
+import fr.efrei2026.springfield.repositories.EvaluationRepository;
 import fr.efrei2026.springfield.repositories.IncidentRepository;
 import fr.efrei2026.springfield.services.interfaces.IEvaluationService;
 import fr.efrei2026.springfield.shared.dto.EvaluationCreationDto;

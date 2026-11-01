@@ -1,14 +1,14 @@
 package fr.efrei2026.springfield.services.impls;
 
+import fr.efrei2026.springfield.exceptions.IdentifiantInvalideException;
+import fr.efrei2026.springfield.exceptions.LoginExistantException;
+import fr.efrei2026.springfield.exceptions.UtilisateurIntrouvableException;
 import fr.efrei2026.springfield.modeles.Utilisateur;
 import fr.efrei2026.springfield.modeles.enums.Profil;
-import fr.efrei2026.springfield.modeles.repositories.UtilisateurRepository;
+import fr.efrei2026.springfield.repositories.UtilisateurRepository;
 import fr.efrei2026.springfield.services.interfaces.IUtilisateurService;
 import fr.efrei2026.springfield.shared.dto.ConnexionDto;
 import fr.efrei2026.springfield.shared.dto.InscriptionDto;
-import fr.efrei2026.springfield.utiles.exceptions.IdentifiantInvalideException;
-import fr.efrei2026.springfield.utiles.exceptions.LoginExistantException;
-import fr.efrei2026.springfield.utiles.exceptions.UtilisateurIntrouvableException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
