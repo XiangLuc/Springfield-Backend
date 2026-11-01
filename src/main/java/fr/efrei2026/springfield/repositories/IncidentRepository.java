@@ -8,8 +8,16 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface IncidentRepository extends JpaRepository<Incident, Integer> {
+
+    @Query("""
+            select i from Incident i
+            left join fetch i.prestataire
+            where i.id = :id
+            """)
+    Optional<Incident> trouverAvecPrestataire(@Param("id") Integer id);
 
     @Query("""
             select i from Incident i
