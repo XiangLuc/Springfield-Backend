@@ -61,6 +61,11 @@ public class GestionnaireErreurs {
         return reponse(HttpStatus.BAD_REQUEST, MESSAGE_CORPS_ILLISIBLE);
     }
 
+    @ExceptionHandler(TriInvalideException.class)
+    public ResponseEntity<ErreurApi> gererTriInvalide(TriInvalideException exception) {
+        return reponse(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
     // ex. : GET /equipements/abc → l'id n'est pas un entier
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErreurApi> gererParametreInvalide(MethodArgumentTypeMismatchException exception) {
