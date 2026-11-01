@@ -1,5 +1,6 @@
 package fr.efrei2026.springfield.controllers;
 
+import fr.efrei2026.springfield.exceptions.EvaluationInterditeException;
 import fr.efrei2026.springfield.exceptions.RessourceIntrouvableException;
 import fr.efrei2026.springfield.shared.dto.ErreurApi;
 import org.slf4j.Logger;
@@ -19,6 +20,12 @@ public class GestionnaireExceptionsWeb {
     public ResponseEntity<ErreurApi> gererRessourceIntrouvable(RessourceIntrouvableException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErreurApi(HttpStatus.NOT_FOUND, exception.getMessage()));
+    }
+
+    @ExceptionHandler(EvaluationInterditeException.class)
+    public ResponseEntity<ErreurApi> gererEvaluationInterdite(EvaluationInterditeException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErreurApi(HttpStatus.CONFLICT, exception.getMessage()));
     }
 
     // ex. : GET /equipements/abc → l'id n'est pas un entier
