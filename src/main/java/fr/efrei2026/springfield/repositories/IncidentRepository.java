@@ -13,6 +13,20 @@ import java.util.Optional;
 public interface IncidentRepository extends JpaRepository<Incident, Integer> {
 
     @Query("""
+            SELECT i FROM Incident i
+            WHERE i.statut <> :statut
+            """)
+    List<Incident> trouverHorsStatut(@Param("statut") StatutIncident statut);
+
+    @Query(value = """
+            SELECT COUNT(DISTINCT e.station_id)
+            FROM incident i
+            INNER JOIN equipement e ON e.id = i.equipement_id
+            WHERE i.statut <> 'RESOLU'
+            """, nativeQuery = true)
+    long compterStationsTouchees();
+
+    @Query("""
             select i from Incident i
             left join fetch i.prestataire
             where i.id = :id
