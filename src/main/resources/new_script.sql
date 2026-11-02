@@ -1,5 +1,8 @@
 SET NAMES utf8mb4;
 
+CREATE DATABASE IF NOT EXISTS springfield_bdd CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE springfield_bdd;
+
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS evaluation;
 DROP TABLE IF EXISTS incident;
