@@ -4,7 +4,6 @@ import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import fr.efrei2026.springfield.services.interfaces.IIncidentService;
 import fr.efrei2026.springfield.shared.dto.AffectationDto;
 import fr.efrei2026.springfield.shared.dto.DeclarationIncidentDto;
-import fr.efrei2026.springfield.shared.dto.IncidentDetailDto;
 import fr.efrei2026.springfield.shared.dto.IncidentDto;
 import fr.efrei2026.springfield.shared.dto.ModificationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.PageDto;
@@ -30,11 +29,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/incidents")
@@ -51,20 +50,6 @@ public class IncidentController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister les incidents en cours, du plus récemment ouvert au plus ancien")
-    @ApiResponse(responseCode = "200", description = "Incidents non résolus, éventuellement aucun")
-    public ResponseEntity<List<IncidentDto>> listerIncidentsEnCours() {
-        return ResponseEntity.ok(incidentService.listerIncidentsEnCours());
-    }
-
-    @GetMapping("/historique")
-    @Operation(summary = "Consulter l'historique des incidents résolus, du plus récemment résolu au plus ancien")
-    @ApiResponse(responseCode = "200", description = "Incidents résolus, éventuellement aucun")
-    public ResponseEntity<List<IncidentDto>> listerIncidentsResolus() {
-        return ResponseEntity.ok(incidentService.listerIncidentsResolus());
-    }
-
-    @GetMapping("/recherche")
     @Operation(summary = "Rechercher les incidents avec des filtres combinables, un tri et une pagination", description = "Par défaut : du plus récemment ouvert au plus ancien. "
                     + "Tri possible sur dateOuverture, dateResolution, statut et equipement.station.nom.")
     @ApiResponse(responseCode = "200", description = "Page d'incidents, éventuellement vide")
@@ -81,15 +66,15 @@ public class IncidentController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Consulter le détail d'un incident et son évaluation éventuelle")
+    @Operation(summary = "Consulter le détail d'un incident")
     @ApiResponse(responseCode = "200", description = "Détail de l'incident")
     @ApiResponse(responseCode = "400", description = "Identifiant invalide")
     @ApiResponse(responseCode = "404", description = "Incident inexistant")
-    public ResponseEntity<IncidentDetailDto> trouverIncident(@PathVariable Integer id) {
+    public ResponseEntity<IncidentDto> trouverIncident(@PathVariable Integer id) {
         return ResponseEntity.ok(incidentService.trouverIncident(id));
     }
 
-    @PostMapping("/{id}/resolution")
+    @PatchMapping("/{id}/resolution")
     @PreAuthorize("hasAuthority('RESPONSABLE_EXPLOITATION')")
     @Operation(summary = "Déclarer un incident résolu, à la date et à l'heure courantes")
     @ApiResponse(responseCode = "200", description = "Incident résolu")
@@ -102,12 +87,13 @@ public class IncidentController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Déclarer un incident sur un équipement", description = "L'incident est ouvert à la date et à l'heure courantes, sans prestataire.")
     @ApiResponse(responseCode = "201", description = "Incident déclaré")
     @ApiResponse(responseCode = "400", description = "Équipement ou description manquant, description trop longue")
     @ApiResponse(responseCode = "404", description = "Équipement inexistant")
-    public ResponseEntity<IncidentDto> declarerIncident(@Valid @RequestBody DeclarationIncidentDto declaration) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(incidentService.declarer(declaration));
+    public IncidentDto declarerIncident(@Valid @RequestBody DeclarationIncidentDto declaration) {
+        return incidentService.declarer(declaration);
     }
 
     @PatchMapping("/{id}")
