@@ -14,9 +14,11 @@ public class IncidentDto {
     private final LocalDateTime dateOuverture;
     private final LocalDateTime dateResolution;
     private final long dureeOuvertureEnHeures;
+    private final int equipementId;
     private final String referenceEquipement;
     private final String libelleEquipement;
     private final String station;
+    private final Integer prestataireId;
     private final String prestataire;
 
     public IncidentDto(Incident incident, long dureeOuvertureEnHeures) {
@@ -27,10 +29,20 @@ public class IncidentDto {
         this.dateOuverture = incident.getDateOuverture();
         this.dateResolution = incident.getDateResolution();
         this.dureeOuvertureEnHeures = dureeOuvertureEnHeures;
+        this.equipementId = incident.getEquipement().getId();
         this.referenceEquipement = incident.getEquipement().getReference();
         this.libelleEquipement = incident.getEquipement().getLibelle();
         this.station = incident.getEquipement().getStation().getNom();
+        this.prestataireId = incident.aUnPrestataire() ? incident.getPrestataire().getId() : null;
         this.prestataire = incident.aUnPrestataire() ? incident.getPrestataire().getNom() : null;
+    }
+
+    public int getEquipementId() {
+        return equipementId;
+    }
+
+    public Integer getPrestataireId() {
+        return prestataireId;
     }
 
     public int getId() {

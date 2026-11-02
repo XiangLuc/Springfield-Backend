@@ -23,6 +23,8 @@ import java.time.LocalDateTime;
 @Table(name = "incident")
 public class Incident {
 
+    public static final int LONGUEUR_MAX_DESCRIPTION = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -33,7 +35,7 @@ public class Incident {
     private Equipement equipement;
 
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = LONGUEUR_MAX_DESCRIPTION)
     private String description;
 
     @Column(name = "date_ouverture", nullable = false)
@@ -96,11 +98,27 @@ public class Incident {
     }
 
     public void resoudre(LocalDateTime dateResolution) {
+        verifierNonResolu();
+        this.statut = StatutIncident.RESOLU;
+        this.dateResolution = dateResolution;
+    }
+
+    public void modifierDescription(String nouvelleDescription) {
+        verifierNonResolu();
+        this.description = nouvelleDescription;
+    }
+
+    // RG5 : un incident résolu ne peut plus être affecté ni réaffecté
+    public void affecter(Prestataire nouveauPrestataire) {
+        verifierNonResolu();
+        this.prestataire = nouveauPrestataire;
+        this.statut = StatutIncident.AFFECTE;
+    }
+
+    private void verifierNonResolu() {
         if (estResolu()) {
             throw new IncidentDejaResoluException(id);
         }
-        this.statut = StatutIncident.RESOLU;
-        this.dateResolution = dateResolution;
     }
 
     public Duration dureeOuverture(Clock horloge) {

@@ -1,7 +1,10 @@
 package fr.efrei2026.springfield.services.interfaces;
 
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
+import fr.efrei2026.springfield.shared.dto.AffectationDto;
+import fr.efrei2026.springfield.shared.dto.DeclarationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.IncidentDto;
+import fr.efrei2026.springfield.shared.dto.ModificationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.PageDto;
 import org.springframework.data.domain.Pageable;
 
@@ -16,6 +19,12 @@ public interface IIncidentService {
     IncidentDto trouverIncident(Integer id);
 
     IncidentDto resoudre(Integer id);
+
+    IncidentDto declarer(DeclarationIncidentDto declaration);
+
+    IncidentDto modifierDescription(Integer id, ModificationIncidentDto modification);
+
+    IncidentDto affecter(Integer id, AffectationDto affectation);
 
     void exporterHistorique(Writer writer);
 }

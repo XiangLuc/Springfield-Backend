@@ -1,12 +1,20 @@
 package fr.efrei2026.springfield.services.impls;
 
 import fr.efrei2026.springfield.exceptions.IncidentIntrouvableException;
+import fr.efrei2026.springfield.exceptions.PrestataireIntrouvableException;
 import fr.efrei2026.springfield.exceptions.TriInvalideException;
+import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
+import fr.efrei2026.springfield.modeles.Prestataire;
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import fr.efrei2026.springfield.repositories.IncidentRepository;
+import fr.efrei2026.springfield.repositories.PrestataireRepository;
+import fr.efrei2026.springfield.services.interfaces.IEquipementService;
 import fr.efrei2026.springfield.services.interfaces.IIncidentService;
+import fr.efrei2026.springfield.shared.dto.AffectationDto;
+import fr.efrei2026.springfield.shared.dto.DeclarationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.IncidentDto;
+import fr.efrei2026.springfield.shared.dto.ModificationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.PageDto;
 import fr.efrei2026.springfield.utiles.CsvUtil;
 import org.springframework.data.domain.Page;
@@ -32,10 +40,15 @@ public class IncidentService implements IIncidentService {
     private static final Set<String> TRIS_AUTORISES = Set.of("dateOuverture", "dateResolution", "statut", "equipement.station.nom");
 
     private final IncidentRepository incidentRepository;
+    private final PrestataireRepository prestataireRepository;
+    private final IEquipementService equipementService;
     private final Clock horloge;
 
-    public IncidentService(IncidentRepository incidentRepository, Clock horloge) {
+    public IncidentService(IncidentRepository incidentRepository, PrestataireRepository prestataireRepository,
+                           IEquipementService equipementService, Clock horloge) {
         this.incidentRepository = incidentRepository;
+        this.prestataireRepository = prestataireRepository;
+        this.equipementService = equipementService;
         this.horloge = horloge;
     }
 
@@ -62,6 +75,30 @@ public class IncidentService implements IIncidentService {
     public IncidentDto resoudre(Integer id) {
         Incident incident = chargerIncident(id);
         incident.resoudre(LocalDateTime.now(horloge));
+        incidentRepository.save(incident);
+        return versDto(incident);
+    }
+
+    // RG1 : rattaché à un équipement, ouvert maintenant, sans prestataire
+    @Override
+    public IncidentDto declarer(DeclarationIncidentDto declaration) {
+        Equipement equipement = equipementService.trouverEquipement(declaration.getEquipementId());
+        Incident incident = new Incident(equipement, declaration.getDescription().strip(), LocalDateTime.now(horloge));
+        return versDto(incidentRepository.save(incident));
+    }
+
+    @Override
+    public IncidentDto modifierDescription(Integer id, ModificationIncidentDto modification) {
+        Incident incident = chargerIncident(id);
+        incident.modifierDescription(modification.getDescription().strip());
+        incidentRepository.save(incident);
+        return versDto(incident);
+    }
+
+    @Override
+    public IncidentDto affecter(Integer id, AffectationDto affectation) {
+        Incident incident = chargerIncident(id);
+        incident.affecter(chargerPrestataire(affectation.getPrestataireId()));
         incidentRepository.save(incident);
         return versDto(incident);
     }
@@ -102,6 +139,11 @@ public class IncidentService implements IIncidentService {
     private Incident chargerIncident(Integer id) {
         return incidentRepository.findById(id)
                 .orElseThrow(() -> new IncidentIntrouvableException(id));
+    }
+
+    private Prestataire chargerPrestataire(Integer id) {
+        return prestataireRepository.findById(id)
+                .orElseThrow(() -> new PrestataireIntrouvableException(id));
     }
 
     private IncidentDto versDto(Incident incident) {
