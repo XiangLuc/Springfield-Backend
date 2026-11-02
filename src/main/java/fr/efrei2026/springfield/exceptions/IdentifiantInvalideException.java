@@ -1,4 +1,4 @@
-package fr.efrei2026.springfield.utiles.exceptions;
+package fr.efrei2026.springfield.exceptions;
 
 public class IdentifiantInvalideException extends RuntimeException {
     public IdentifiantInvalideException() {

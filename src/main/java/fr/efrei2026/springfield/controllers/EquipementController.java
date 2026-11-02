@@ -1,8 +1,9 @@
 package fr.efrei2026.springfield.controllers;
 
-import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
 import fr.efrei2026.springfield.services.interfaces.IEquipementService;
+import fr.efrei2026.springfield.shared.dto.EquipementDto;
+import fr.efrei2026.springfield.shared.dto.IncidentDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,17 +23,21 @@ public class EquipementController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Equipement> trouverEquipement(@PathVariable Integer id) {
-        return ResponseEntity.ok(equipementService.trouverEquipement(id));
+    public ResponseEntity<EquipementDto> trouverEquipement(@PathVariable Integer id) {
+        return ResponseEntity.ok(EquipementDto.depuis(equipementService.trouverEquipement(id)));
     }
 
     @GetMapping("/{id}/incidents/en-cours")
-    public ResponseEntity<List<Incident>> listerIncidentsEnCours(@PathVariable Integer id) {
-        return ResponseEntity.ok(equipementService.listerIncidentsEnCours(id));
+    public ResponseEntity<List<IncidentDto>> listerIncidentsEnCours(@PathVariable Integer id) {
+        return ResponseEntity.ok(versDto(equipementService.listerIncidentsEnCours(id)));
     }
 
     @GetMapping("/{id}/incidents/passes")
-    public ResponseEntity<List<Incident>> listerIncidentsPasses(@PathVariable Integer id) {
-        return ResponseEntity.ok(equipementService.listerIncidentsPasses(id));
+    public ResponseEntity<List<IncidentDto>> listerIncidentsPasses(@PathVariable Integer id) {
+        return ResponseEntity.ok(versDto(equipementService.listerIncidentsPasses(id)));
+    }
+
+    private List<IncidentDto> versDto(List<Incident> incidents) {
+        return incidents.stream().map(IncidentDto::depuis).toList();
     }
 }

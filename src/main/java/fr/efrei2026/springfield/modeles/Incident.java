@@ -1,6 +1,7 @@
 package fr.efrei2026.springfield.modeles;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.efrei2026.springfield.exceptions.DateResolutionInvalideException;
+import fr.efrei2026.springfield.exceptions.IncidentDejaResoluException;
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,23 +15,25 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "incident")
 public class Incident {
 
+    public static final int LONGUEUR_MAX_DESCRIPTION = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "equipement_id")
     private Equipement equipement;
 
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = LONGUEUR_MAX_DESCRIPTION)
     private String description;
 
     @Column(name = "date_ouverture", nullable = false)
@@ -82,5 +85,43 @@ public class Incident {
 
     public LocalDateTime getDateResolution() {
         return dateResolution;
+    }
+
+    public boolean estResolu() {
+        return statut == StatutIncident.RESOLU;
+    }
+
+    public void modifierDescription(String nouvelleDescription) {
+        verifierNonResolu();
+        this.description = nouvelleDescription;
+    }
+
+    // RG5 : un incident résolu ne peut plus être affecté ni réaffecté
+    public void affecter(Prestataire nouveauPrestataire) {
+        verifierNonResolu();
+        this.prestataire = nouveauPrestataire;
+        this.statut = StatutIncident.AFFECTE;
+    }
+
+    // RG5 : la date de résolution est postérieure ou égale à l'ouverture
+    public void resoudre(LocalDateTime date) {
+        verifierNonResolu();
+        if (date.isBefore(dateOuverture)) {
+            throw new DateResolutionInvalideException(id);
+        }
+        this.dateResolution = date;
+        this.statut = StatutIncident.RESOLU;
+    }
+
+    // Une fois résolu, la durée est figée à la date de résolution
+    public Duration dureeOuverture(LocalDateTime maintenant) {
+        LocalDateTime fin = estResolu() ? dateResolution : maintenant;
+        return Duration.between(dateOuverture, fin);
+    }
+
+    private void verifierNonResolu() {
+        if (estResolu()) {
+            throw new IncidentDejaResoluException(id);
+        }
     }
 }

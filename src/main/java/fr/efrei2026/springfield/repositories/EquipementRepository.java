@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public interface EquipementRepository extends JpaRepository<Equipement, Integer> {
 
-    // Le type est chargé en même temps pour éviter une requête par ligne affichée (N+1)
-    @EntityGraph(attributePaths = "type")
+    // Le type et la station sont chargés en même temps pour éviter une requête par ligne affichée (N+1)
+    @EntityGraph(attributePaths = {"type", "station"})
     List<Equipement> findByStationIdOrderByLibelleAsc(Integer stationId);
 
     @Query("""

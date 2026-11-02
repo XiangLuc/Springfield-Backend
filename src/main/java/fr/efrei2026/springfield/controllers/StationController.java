@@ -1,9 +1,9 @@
 package fr.efrei2026.springfield.controllers;
 
-import fr.efrei2026.springfield.modeles.Equipement;
-import fr.efrei2026.springfield.modeles.Station;
 import fr.efrei2026.springfield.services.interfaces.IEquipementService;
 import fr.efrei2026.springfield.services.interfaces.IStationService;
+import fr.efrei2026.springfield.shared.dto.EquipementDto;
+import fr.efrei2026.springfield.shared.dto.StationDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,17 +25,17 @@ public class StationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Station>> listerStations() {
-        return ResponseEntity.ok(stationService.listerStations());
+    public ResponseEntity<List<StationDto>> listerStations() {
+        return ResponseEntity.ok(stationService.listerStations().stream().map(StationDto::depuis).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Station> trouverStation(@PathVariable Integer id) {
-        return ResponseEntity.ok(stationService.trouverStation(id));
+    public ResponseEntity<StationDto> trouverStation(@PathVariable Integer id) {
+        return ResponseEntity.ok(StationDto.depuis(stationService.trouverStation(id)));
     }
 
     @GetMapping("/{id}/equipements")
-    public ResponseEntity<List<Equipement>> listerEquipementsDeLaStation(@PathVariable Integer id) {
-        return ResponseEntity.ok(equipementService.listerEquipementsDeLaStation(id));
+    public ResponseEntity<List<EquipementDto>> listerEquipementsDeLaStation(@PathVariable Integer id) {
+        return ResponseEntity.ok(equipementService.listerEquipementsDeLaStation(id).stream().map(EquipementDto::depuis).toList());
     }
 }

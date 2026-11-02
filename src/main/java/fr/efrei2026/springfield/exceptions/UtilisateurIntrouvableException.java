@@ -1,6 +1,6 @@
-package fr.efrei2026.springfield.utiles.exceptions;
+package fr.efrei2026.springfield.exceptions;
 
-public class UtilisateurIntrouvableException extends RuntimeException {
+public class UtilisateurIntrouvableException extends RessourceIntrouvableException {
     public UtilisateurIntrouvableException(String login) {
         super("L'utilisateur « " + login + " » n'existe pas.");
     }
