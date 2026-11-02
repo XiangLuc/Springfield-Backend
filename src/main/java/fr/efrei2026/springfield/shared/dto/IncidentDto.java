@@ -1,6 +1,8 @@
 package fr.efrei2026.springfield.shared.dto;
 
+import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
+import fr.efrei2026.springfield.modeles.Prestataire;
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
 
 import java.time.LocalDateTime;
@@ -9,40 +11,22 @@ public class IncidentDto {
 
     private final int id;
     private final String description;
-    private final StatutIncident statut;
-    private final String libelleStatut;
     private final LocalDateTime dateOuverture;
+    private final StatutIncident statut;
+    private final Prestataire prestataire;
     private final LocalDateTime dateResolution;
-    private final long dureeOuvertureEnHeures;
-    private final int equipementId;
-    private final String referenceEquipement;
-    private final String libelleEquipement;
-    private final String station;
-    private final Integer prestataireId;
-    private final String prestataire;
+    private final Equipement equipement;
+    private final long dureeOuvertureEnMinutes;
 
-    public IncidentDto(Incident incident, long dureeOuvertureEnHeures) {
+    public IncidentDto(Incident incident, long dureeOuvertureEnMinutes) {
         this.id = incident.getId();
         this.description = incident.getDescription();
-        this.statut = incident.getStatut();
-        this.libelleStatut = incident.getStatut().getLibelle();
         this.dateOuverture = incident.getDateOuverture();
+        this.statut = incident.getStatut();
+        this.prestataire = incident.getPrestataire();
         this.dateResolution = incident.getDateResolution();
-        this.dureeOuvertureEnHeures = dureeOuvertureEnHeures;
-        this.equipementId = incident.getEquipement().getId();
-        this.referenceEquipement = incident.getEquipement().getReference();
-        this.libelleEquipement = incident.getEquipement().getLibelle();
-        this.station = incident.getEquipement().getStation().getNom();
-        this.prestataireId = incident.aUnPrestataire() ? incident.getPrestataire().getId() : null;
-        this.prestataire = incident.aUnPrestataire() ? incident.getPrestataire().getNom() : null;
-    }
-
-    public int getEquipementId() {
-        return equipementId;
-    }
-
-    public Integer getPrestataireId() {
-        return prestataireId;
+        this.equipement = incident.getEquipement();
+        this.dureeOuvertureEnMinutes = dureeOuvertureEnMinutes;
     }
 
     public int getId() {
@@ -53,39 +37,27 @@ public class IncidentDto {
         return description;
     }
 
+    public LocalDateTime getDateOuverture() {
+        return dateOuverture;
+    }
+
     public StatutIncident getStatut() {
         return statut;
     }
 
-    public String getLibelleStatut() {
-        return libelleStatut;
-    }
-
-    public LocalDateTime getDateOuverture() {
-        return dateOuverture;
+    public Prestataire getPrestataire() {
+        return prestataire;
     }
 
     public LocalDateTime getDateResolution() {
         return dateResolution;
     }
 
-    public long getDureeOuvertureEnHeures() {
-        return dureeOuvertureEnHeures;
+    public Equipement getEquipement() {
+        return equipement;
     }
 
-    public String getReferenceEquipement() {
-        return referenceEquipement;
-    }
-
-    public String getLibelleEquipement() {
-        return libelleEquipement;
-    }
-
-    public String getStation() {
-        return station;
-    }
-
-    public String getPrestataire() {
-        return prestataire;
+    public long getDureeOuvertureEnMinutes() {
+        return dureeOuvertureEnMinutes;
     }
 }

@@ -7,12 +7,15 @@ import fr.efrei2026.springfield.modeles.Equipement;
 import fr.efrei2026.springfield.modeles.Incident;
 import fr.efrei2026.springfield.modeles.Prestataire;
 import fr.efrei2026.springfield.modeles.enums.StatutIncident;
+import fr.efrei2026.springfield.repositories.EvaluationRepository;
 import fr.efrei2026.springfield.repositories.IncidentRepository;
 import fr.efrei2026.springfield.repositories.PrestataireRepository;
 import fr.efrei2026.springfield.services.interfaces.IEquipementService;
 import fr.efrei2026.springfield.services.interfaces.IIncidentService;
 import fr.efrei2026.springfield.shared.dto.AffectationDto;
 import fr.efrei2026.springfield.shared.dto.DeclarationIncidentDto;
+import fr.efrei2026.springfield.shared.dto.EvaluationDto;
+import fr.efrei2026.springfield.shared.dto.IncidentDetailDto;
 import fr.efrei2026.springfield.shared.dto.IncidentDto;
 import fr.efrei2026.springfield.shared.dto.ModificationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.PageDto;
@@ -41,13 +44,15 @@ public class IncidentService implements IIncidentService {
 
     private final IncidentRepository incidentRepository;
     private final PrestataireRepository prestataireRepository;
+    private final EvaluationRepository evaluationRepository;
     private final IEquipementService equipementService;
     private final Clock horloge;
 
     public IncidentService(IncidentRepository incidentRepository, PrestataireRepository prestataireRepository,
-                           IEquipementService equipementService, Clock horloge) {
+                           EvaluationRepository evaluationRepository, IEquipementService equipementService, Clock horloge) {
         this.incidentRepository = incidentRepository;
         this.prestataireRepository = prestataireRepository;
+        this.evaluationRepository = evaluationRepository;
         this.equipementService = equipementService;
         this.horloge = horloge;
     }
@@ -67,8 +72,25 @@ public class IncidentService implements IIncidentService {
     }
 
     @Override
-    public IncidentDto trouverIncident(Integer id) {
-        return versDto(chargerIncident(id));
+    public List<IncidentDto> listerIncidentsEnCours() {
+        return incidentRepository.trouverHorsStatutAvecDetails(StatutIncident.RESOLU).stream()
+                .map(this::versDto)
+                .toList();
+    }
+
+    @Override
+    public List<IncidentDto> listerIncidentsResolus() {
+        return incidentRepository.trouverHistorique(StatutIncident.RESOLU).stream()
+                .map(this::versDto)
+                .toList();
+    }
+
+    @Override
+    public IncidentDetailDto trouverIncident(Integer id) {
+        EvaluationDto evaluation = evaluationRepository.findByIncidentIdAvecPrestataire(id)
+                .map(EvaluationDto::new)
+                .orElse(null);
+        return new IncidentDetailDto(versDto(chargerIncident(id)), evaluation);
     }
 
     @Override
@@ -105,7 +127,7 @@ public class IncidentService implements IIncidentService {
 
     @Override
     public void exporterHistorique(Writer writer) {
-        List<Object[]> lignes = incidentRepository.findHistoriquePourExport(StatutIncident.RESOLU).stream()
+        List<Object[]> lignes = incidentRepository.trouverHistorique(StatutIncident.RESOLU).stream()
                 .map(incident -> new Object[]{
                         incident.getEquipement().getStation().getNom(),
                         incident.getEquipement().getReference(),
@@ -137,7 +159,7 @@ public class IncidentService implements IIncidentService {
     }
 
     private Incident chargerIncident(Integer id) {
-        return incidentRepository.findById(id)
+        return incidentRepository.trouverAvecDetails(id)
                 .orElseThrow(() -> new IncidentIntrouvableException(id));
     }
 
@@ -147,7 +169,7 @@ public class IncidentService implements IIncidentService {
     }
 
     private IncidentDto versDto(Incident incident) {
-        return new IncidentDto(incident, incident.dureeOuverture(horloge).toHours());
+        return new IncidentDto(incident, incident.dureeOuverture(horloge).toMinutes());
     }
 
     private String nomDuPrestataire(Incident incident) {

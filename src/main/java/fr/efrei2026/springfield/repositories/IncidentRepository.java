@@ -17,7 +17,10 @@ public interface IncidentRepository extends JpaRepository<Incident, Integer> {
 
     @Query("""
             SELECT i FROM Incident i
-            INNER JOIN i.equipement e
+            INNER JOIN FETCH i.equipement e
+            INNER JOIN FETCH e.station
+            INNER JOIN FETCH e.type
+            LEFT JOIN FETCH i.prestataire
             WHERE (:statut IS NULL OR i.statut = :statut)
               AND (:stationId IS NULL OR e.station.id = :stationId)
               AND (:prestataireId IS NULL OR i.prestataire.id = :prestataireId)
@@ -40,6 +43,27 @@ public interface IncidentRepository extends JpaRepository<Incident, Integer> {
             WHERE i.statut <> :statut
             """)
     List<Incident> trouverHorsStatut(@Param("statut") StatutIncident statut);
+
+    @Query("""
+            SELECT i FROM Incident i
+            INNER JOIN FETCH i.equipement e
+            INNER JOIN FETCH e.station
+            INNER JOIN FETCH e.type
+            LEFT JOIN FETCH i.prestataire
+            WHERE i.statut <> :statut
+            ORDER BY i.dateOuverture DESC
+            """)
+    List<Incident> trouverHorsStatutAvecDetails(@Param("statut") StatutIncident statut);
+
+    @Query("""
+            SELECT i FROM Incident i
+            INNER JOIN FETCH i.equipement e
+            INNER JOIN FETCH e.station
+            INNER JOIN FETCH e.type
+            LEFT JOIN FETCH i.prestataire
+            WHERE i.id = :id
+            """)
+    Optional<Incident> trouverAvecDetails(@Param("id") Integer id);
 
     @Query(value = """
             SELECT COUNT(DISTINCT e.station_id)
@@ -66,9 +90,14 @@ public interface IncidentRepository extends JpaRepository<Incident, Integer> {
     List<Incident> trouverParEquipementEtStatuts(@Param("equipementId") Integer equipementId,
                                                  @Param("statuts") Collection<StatutIncident> statuts);
 
-    @Query("SELECT i FROM Incident i "
-            + "JOIN FETCH i.equipement e JOIN FETCH e.station "
-            + "LEFT JOIN FETCH i.prestataire "
-            + "WHERE i.statut = :statut ORDER BY i.dateResolution DESC")
-    List<Incident> findHistoriquePourExport(@Param("statut") StatutIncident statut);
+    @Query("""
+            SELECT i FROM Incident i
+            INNER JOIN FETCH i.equipement e
+            INNER JOIN FETCH e.station
+            INNER JOIN FETCH e.type
+            LEFT JOIN FETCH i.prestataire
+            WHERE i.statut = :statut
+            ORDER BY i.dateResolution DESC
+            """)
+    List<Incident> trouverHistorique(@Param("statut") StatutIncident statut);
 }
