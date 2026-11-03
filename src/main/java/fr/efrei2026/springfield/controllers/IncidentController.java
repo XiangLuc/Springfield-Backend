@@ -10,7 +10,6 @@ import fr.efrei2026.springfield.shared.dto.PageDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +18,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,10 +29,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 
 @RestController
@@ -87,13 +87,12 @@ public class IncidentController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Déclarer un incident sur un équipement", description = "L'incident est ouvert à la date et à l'heure courantes, sans prestataire.")
     @ApiResponse(responseCode = "201", description = "Incident déclaré")
     @ApiResponse(responseCode = "400", description = "Équipement ou description manquant, description trop longue")
     @ApiResponse(responseCode = "404", description = "Équipement inexistant")
-    public IncidentDto declarerIncident(@Valid @RequestBody DeclarationIncidentDto declaration) {
-        return incidentService.declarer(declaration);
+    public ResponseEntity<IncidentDto> declarerIncident(@Valid @RequestBody DeclarationIncidentDto declaration) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(incidentService.declarer(declaration));
     }
 
     @PatchMapping("/{id}")
@@ -123,9 +122,12 @@ public class IncidentController {
     @GetMapping("/historique/export")
     @Operation(summary = "Exporter en CSV l'historique des incidents résolus")
     @ApiResponse(responseCode = "200", description = "Fichier CSV de l'historique")
-    public void exporterHistorique(HttpServletResponse response) throws IOException {
-        response.setContentType("text/csv; charset=UTF-8");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=historique_incidents.csv");
-        incidentService.exporterHistorique(response.getWriter());
+    public ResponseEntity<String> exporterHistorique() {
+        StringWriter csv = new StringWriter();
+        incidentService.exporterHistorique(csv);
+        return ResponseEntity.ok()
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=historique_incidents.csv")
+                .body(csv.toString());
     }
 }

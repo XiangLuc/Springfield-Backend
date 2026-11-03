@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
@@ -44,10 +43,10 @@ public class AuthentificationController {
     }
 
     @PostMapping("/inscription")
-    @ResponseStatus(HttpStatus.CREATED)
-    /*@PreAuthorize("hasAuthority('RESPONSABLE_EXPLOITATION')")*/
-    public UtilisateurDto inscrire(@Valid @RequestBody InscriptionDto inscription) {
-        return new UtilisateurDto(utilisateurService.inscrire(inscription));
+    @PreAuthorize("hasAuthority('RESPONSABLE_EXPLOITATION')")
+    public ResponseEntity<UtilisateurDto> inscrire(@Valid @RequestBody InscriptionDto inscription) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new UtilisateurDto(utilisateurService.inscrire(inscription)));
     }
 
     @GetMapping("/info")

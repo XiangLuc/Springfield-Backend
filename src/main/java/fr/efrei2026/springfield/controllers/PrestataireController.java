@@ -2,6 +2,7 @@ package fr.efrei2026.springfield.controllers;
 
 import fr.efrei2026.springfield.services.interfaces.IPrestataireService;
 import fr.efrei2026.springfield.shared.dto.PrestataireDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +20,7 @@ public class PrestataireController {
     }
 
     @GetMapping
-    public List<PrestataireDto> listerPrestataires() {
-        return prestataireService.listerPrestataires();
+    public ResponseEntity<List<PrestataireDto>> listerPrestataires() {
+        return ResponseEntity.ok(prestataireService.listerPrestataires());
     }
 }
