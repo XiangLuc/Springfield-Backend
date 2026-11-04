@@ -6,6 +6,10 @@ import fr.efrei2026.springfield.services.interfaces.IUtilisateurService;
 import fr.efrei2026.springfield.shared.dto.ConnexionDto;
 import fr.efrei2026.springfield.shared.dto.InscriptionDto;
 import fr.efrei2026.springfield.shared.dto.UtilisateurDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,6 +27,7 @@ import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentification", description = "Connexion, déconnexion et création des comptes agents")
 public class AuthentificationController {
 
     private final IUtilisateurService utilisateurService;
@@ -34,6 +39,10 @@ public class AuthentificationController {
     }
 
     @PostMapping("/connexion")
+    @Operation(summary = "Se connecter", description = "Le jeton de session est enregistré dans un cookie.")
+    @ApiResponse(responseCode = "200", description = "Utilisateur connecté")
+    @ApiResponse(responseCode = "400", description = "Identifiant ou mot de passe manquant")
+    @ApiResponse(responseCode = "401", description = "Identifiant ou mot de passe incorrect")
     public ResponseEntity<UtilisateurDto> connecter(@Valid @RequestBody ConnexionDto connexion) {
         Utilisateur utilisateur = utilisateurService.connecter(connexion);
         ResponseCookie cookie = creerCookie(jwtService.genererJeton(utilisateur), jwtService.getDureeValidite());
@@ -44,13 +53,21 @@ public class AuthentificationController {
 
     @PostMapping("/inscription")
     @PreAuthorize("hasAuthority('RESPONSABLE_EXPLOITATION')")
+    @Operation(summary = "Créer un compte agent")
+    @ApiResponse(responseCode = "201", description = "Compte créé")
+    @ApiResponse(responseCode = "400", description = "Données manquantes ou invalides")
+    @ApiResponse(responseCode = "403", description = "Utilisateur non connecté ou profil non autorisé")
+    @ApiResponse(responseCode = "409", description = "Identifiant déjà utilisé")
     public ResponseEntity<UtilisateurDto> inscrire(@Valid @RequestBody InscriptionDto inscription) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new UtilisateurDto(utilisateurService.inscrire(inscription)));
     }
 
     @GetMapping("/info")
-    public ResponseEntity<UtilisateurDto> recupererUtilisateurConnecte(Authentication authentification) {
+    @Operation(summary = "Récupérer l'utilisateur connecté")
+    @ApiResponse(responseCode = "200", description = "Utilisateur connecté")
+    @ApiResponse(responseCode = "204", description = "Aucun utilisateur connecté")
+    public ResponseEntity<UtilisateurDto> recupererUtilisateurConnecte(@Parameter(hidden = true) Authentication authentification) {
         if (authentification == null) {
             return ResponseEntity.noContent().build();
         }
@@ -58,6 +75,8 @@ public class AuthentificationController {
     }
 
     @PostMapping("/deconnexion")
+    @Operation(summary = "Se déconnecter", description = "Le cookie contenant le jeton de session est supprimé.")
+    @ApiResponse(responseCode = "204", description = "Utilisateur déconnecté")
     public ResponseEntity<Void> deconnecter() {
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, creerCookie("", Duration.ZERO).toString())

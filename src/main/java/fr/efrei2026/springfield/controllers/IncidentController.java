@@ -37,7 +37,7 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/incidents")
-@Tag(name = "Incidents", description = "Consultation des incidents et déclaration de leur résolution")
+@Tag(name = "Incidents", description = "Recherche, déclaration, affectation et résolution des incidents")
 @ApiResponse(responseCode = "401", description = "Utilisateur non connecté")
 public class IncidentController {
 
