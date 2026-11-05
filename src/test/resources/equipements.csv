@@ -1,0 +1,7 @@
+reference;libelle;type;station
+ASC-001;Ascenseur quai A;Ascenseur;Gare du Nord
+PORT-012;Portique sortie nord;Portique;Part-Dieu
+ASC-002;Ascenseur quai B;Ascenseur;Châtelet
+ESC-003;Escalier mécanique;Inconnu;Gare du Nord
+;Sans référence;Ascenseur;Gare du Nord
+ASC-099;Déjà en base;Ascenseur;Gare du Nord
