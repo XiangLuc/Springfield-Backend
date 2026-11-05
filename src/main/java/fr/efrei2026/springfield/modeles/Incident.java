@@ -115,7 +115,7 @@ public class Incident {
         this.statut = StatutIncident.AFFECTE;
     }
 
-    private void verifierNonResolu() {
+    public void verifierNonResolu() {
         if (estResolu()) {
             throw new IncidentDejaResoluException(id);
         }
