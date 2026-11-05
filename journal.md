@@ -5,7 +5,7 @@
 ## README
 
 - **Prérequis :** Java 21, Maven (`mvnw` inclus), MariaDB, Node.js LTS, Angular CLI ; copier `.env.example` en `.env` et le remplir
-- **Initialiser la base :** `mysql -u root -p < src/main/resources/new_script.sql`
+- **Initialiser la base :** `mysql -u root -p < src/main/resources/script.sql`
 - **Lancer :**
   - Backend : `./mvnw spring-boot:run` (ou panneau Maven d'IntelliJ)
   - Frontend : `npm install` puis `ng serve`
