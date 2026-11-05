@@ -108,12 +108,13 @@ public class IncidentController {
 
     @PutMapping("/{id}/prestataire")
     @PreAuthorize("hasAuthority('RESPONSABLE_EXPLOITATION')")
-    @Operation(summary = "Affecter ou réaffecter un prestataire à un incident non résolu")
+    @Operation(summary = "Affecter ou réaffecter un prestataire à un incident non résolu",
+            description = "Un prestataire sous surveillance n'est affecté que si la requête contient confirmationSurveillance = true.")
     @ApiResponse(responseCode = "200", description = "Prestataire affecté")
     @ApiResponse(responseCode = "400", description = "Prestataire manquant")
     @ApiResponse(responseCode = "403", description = "Profil non autorisé ou jeton CSRF absent")
     @ApiResponse(responseCode = "404", description = "Incident ou prestataire inexistant")
-    @ApiResponse(responseCode = "409", description = "Incident déjà résolu")
+    @ApiResponse(responseCode = "409", description = "Incident déjà résolu, ou prestataire sous surveillance non confirmé")
     public ResponseEntity<IncidentDto> affecterPrestataire(@PathVariable Integer id,
                                                            @Valid @RequestBody AffectationDto affectation) {
         return ResponseEntity.ok(incidentService.affecter(id, affectation));
