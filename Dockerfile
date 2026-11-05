@@ -13,5 +13,5 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=construction /app/target/*.jar springfield.jar
 EXPOSE 8080
-# Les offres gratuites limitent la mémoire : la JVM s'adapte à celle du conteneur
+
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "springfield.jar"]
