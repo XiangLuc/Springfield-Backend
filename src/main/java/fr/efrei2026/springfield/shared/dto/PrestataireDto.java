@@ -8,10 +8,10 @@ public class PrestataireDto {
     private String telephone;
     private Double noteMoyenne;
     private long nombreEvaluations;
+    private boolean sousSurveillance;
 
     // Un seul constructeur : Spring Data s'en sert pour construire ce DTO à partir de listerAvecNotes.
-    public PrestataireDto(Integer id, String nom, String email, String telephone, Double noteMoyenne,
-                          Long nombreEvaluations) {
+    public PrestataireDto(Integer id, String nom, String email, String telephone, Double noteMoyenne, Long nombreEvaluations) {
         this.id = id;
         this.nom = nom;
         this.email = email;
@@ -66,5 +66,13 @@ public class PrestataireDto {
 
     public void setNombreEvaluations(long nombreEvaluations) {
         this.nombreEvaluations = nombreEvaluations;
+    }
+
+    public boolean isSousSurveillance() {
+        return sousSurveillance;
+    }
+
+    public void setSousSurveillance(boolean sousSurveillance) {
+        this.sousSurveillance = sousSurveillance;
     }
 }
