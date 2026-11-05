@@ -43,7 +43,7 @@ public class GestionnaireErreurs {
         return reponse(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
-    @ExceptionHandler({LoginExistantException.class, EvaluationInterditeException.class, IncidentDejaResoluException.class})
+    @ExceptionHandler({LoginExistantException.class, EvaluationInterditeException.class, IncidentDejaResoluException.class, ConfirmationSurveillanceRequiseException.class})
     public ResponseEntity<ErreurApi> gererConflit(RuntimeException exception) {
         return reponse(HttpStatus.CONFLICT, exception.getMessage());
     }
