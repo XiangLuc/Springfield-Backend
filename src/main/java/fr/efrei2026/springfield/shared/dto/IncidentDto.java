@@ -20,8 +20,9 @@ public class IncidentDto {
     private final String station;
     private final Integer prestataireId;
     private final String prestataire;
+    private final boolean prestataireSousSurveillance;
 
-    public IncidentDto(Incident incident, long dureeOuvertureEnHeures) {
+    public IncidentDto(Incident incident, long dureeOuvertureEnHeures, boolean prestataireSousSurveillance) {
         this.id = incident.getId();
         this.description = incident.getDescription();
         this.statut = incident.getStatut();
@@ -35,6 +36,7 @@ public class IncidentDto {
         this.station = incident.getEquipement().getStation().getNom();
         this.prestataireId = incident.aUnPrestataire() ? incident.getPrestataire().getId() : null;
         this.prestataire = incident.aUnPrestataire() ? incident.getPrestataire().getNom() : null;
+        this.prestataireSousSurveillance = prestataireSousSurveillance;
     }
 
     public int getEquipementId() {
@@ -87,5 +89,9 @@ public class IncidentDto {
 
     public String getPrestataire() {
         return prestataire;
+    }
+
+    public boolean isPrestataireSousSurveillance() {
+        return prestataireSousSurveillance;
     }
 }
