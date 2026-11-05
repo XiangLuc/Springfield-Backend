@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface IPrestataireService {
     List<PrestataireDto> listerPrestataires();
+
+    boolean estSousSurveillance(int prestataireId);
 }
