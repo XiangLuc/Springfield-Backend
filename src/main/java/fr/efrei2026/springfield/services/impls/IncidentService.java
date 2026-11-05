@@ -1,5 +1,6 @@
 package fr.efrei2026.springfield.services.impls;
 
+import fr.efrei2026.springfield.exceptions.ConfirmationSurveillanceRequiseException;
 import fr.efrei2026.springfield.exceptions.IncidentIntrouvableException;
 import fr.efrei2026.springfield.exceptions.PrestataireIntrouvableException;
 import fr.efrei2026.springfield.exceptions.TriInvalideException;
@@ -11,6 +12,7 @@ import fr.efrei2026.springfield.repositories.IncidentRepository;
 import fr.efrei2026.springfield.repositories.PrestataireRepository;
 import fr.efrei2026.springfield.services.interfaces.IEquipementService;
 import fr.efrei2026.springfield.services.interfaces.IIncidentService;
+import fr.efrei2026.springfield.services.interfaces.IPrestataireService;
 import fr.efrei2026.springfield.shared.dto.AffectationDto;
 import fr.efrei2026.springfield.shared.dto.DeclarationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.IncidentDto;
@@ -42,13 +44,16 @@ public class IncidentService implements IIncidentService {
     private final IncidentRepository incidentRepository;
     private final PrestataireRepository prestataireRepository;
     private final IEquipementService equipementService;
+    private final IPrestataireService prestataireService;
     private final Clock horloge;
 
     public IncidentService(IncidentRepository incidentRepository, PrestataireRepository prestataireRepository,
-                           IEquipementService equipementService, Clock horloge) {
+                           IEquipementService equipementService, IPrestataireService prestataireService,
+                           Clock horloge) {
         this.incidentRepository = incidentRepository;
         this.prestataireRepository = prestataireRepository;
         this.equipementService = equipementService;
+        this.prestataireService = prestataireService;
         this.horloge = horloge;
     }
 
@@ -98,7 +103,12 @@ public class IncidentService implements IIncidentService {
     @Override
     public IncidentDto affecter(Integer id, AffectationDto affectation) {
         Incident incident = chargerIncident(id);
-        incident.affecter(chargerPrestataire(affectation.getPrestataireId()));
+        Prestataire prestataire = chargerPrestataire(affectation.getPrestataireId());
+        incident.verifierNonResolu();
+        if (!affectation.isConfirmationSurveillance() && prestataireService.estSousSurveillance(prestataire.getId())) {
+            throw new ConfirmationSurveillanceRequiseException(prestataire.getNom());
+        }
+        incident.affecter(prestataire);
         incidentRepository.save(incident);
         return versDto(incident);
     }
@@ -147,7 +157,9 @@ public class IncidentService implements IIncidentService {
     }
 
     private IncidentDto versDto(Incident incident) {
-        return new IncidentDto(incident, incident.dureeOuverture(horloge).toHours());
+        boolean prestataireSousSurveillance = incident.getStatut() == StatutIncident.AFFECTE
+                && prestataireService.estSousSurveillance(incident.getPrestataire().getId());
+        return new IncidentDto(incident, incident.dureeOuverture(horloge).toHours(), prestataireSousSurveillance);
     }
 
     private String nomDuPrestataire(Incident incident) {
