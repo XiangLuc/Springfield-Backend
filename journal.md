@@ -4,10 +4,10 @@
 
 ## README
 
-- **Prérequis :** Java 21, Maven (`mvnw` inclus), MariaDB, Node.js LTS, Angular CLI ; copier `.env.example` en `.env` et le remplir
+- **Prérequis :** IntelliJ IDEA et Java 21 pour le backend, MariaDB, Node.js LTS et Angular CLI pour le frontend ; copier `.env.example` en `.env` et le remplir
 - **Initialiser la base :** `mysql -u root -p < src/main/resources/script.sql`
 - **Lancer :**
-  - Backend : `./mvnw spring-boot:run` (ou panneau Maven d'IntelliJ)
+  - Backend : ouvrir le projet dans IntelliJ et charger le `pom.xml` pour récupérer les dépendances Maven, puis lancer `SpringfieldApplication` depuis l'IDE (ou `./mvnw spring-boot:run` en ligne de commande)
   - Frontend : `npm install` puis `ng serve`
 - **Application déployée :** https://springfield-d105.onrender.com/
 - **Comptes de test :**
@@ -36,7 +36,7 @@
 - **Stratégie :** tests unitaires des règles métier avec JUnit et Mockito, et une horloge fixe pour les seuils d'urgence
 - **Commande :** `./mvnw verify` (ou Lifecycle > clean puis package dans IntelliJ) ; il faut le fichier `.env` et une base accessible
 - **Couvert :** seuils de 47 h, 48 h et 72 h, cycle de vie des incidents, évaluation, recherche, import et export CSV
-- **Non couvert :** contrôleurs, repositories et droits par profil, vérifiés à la main par manque de temps
+- **Non couvert :** contrôleurs (sauf l'affectation), repositories et droits par profil, vérifiés à la main par manque de temps
 
 ## CHOIX TECHNIQUES
 
@@ -88,8 +88,8 @@
 ## BILAN
 
 - **Contribution de chacun :**
-  - Luc : authentification, évaluation (F10), tableau de bord (F11), API REST (F12), lot alpha
-  - Jessy : script de base initial, équipements et stations (F2, F3), cycle de vie des incidents (F4 à F9) et déploiement de l'application
+  - Luc : authentification, évaluation (F10), tableau de bord (F11), API REST (F12), lot alpha, surveillance prestataire partie backend
+  - Jessy : script de base initial, équipements et stations (F2, F3), cycle de vie des incidents (F4 à F9) et déploiement de l'application, surveillance prestataire partie frontend
 - **Plus grande difficulté et comment elle a été surmontée :** le manque de temps, on s'est donc concentrés sur le socle et les lots alpha faisables. On a aussi perdu du temps sur le déploiement et sur les conflits Git, par manque d'organisation des branches : des DTO changés après un merge dans `develop` pouvaient casser le frontend, qu'on a alors réaligné.
 - **Fonctionnalités non réalisées et pourquoi :**
   - Cartographie : choisir une bibliothèque et faire un POC prenait trop de temps.
@@ -99,3 +99,29 @@
   1. Le découpage en couches, qui rend les règles métier faciles à tester.
   2. L'injection de dépendances, qui permet par exemple de fixer l'horloge dans les tests.
   3. Le Clean Code, pour un code facile à relire et des choix techniques justifiés.
+
+## Évolution séance finale
+
+### Ce qu'on a fait
+
+Un prestataire est « sous surveillance » si la moyenne de ses 5 dernières notes est en dessous de 3. Pour l'affecter à un incident, il faut alors confirmer.
+
+- **Backend :** le calcul est dans `PrestataireService`, le refus sans confirmation dans `IncidentService`, et les notes viennent de `EvaluationRepository`.
+- **Frontend :** tout se passe dans `incident-details` : la mention dans la liste, le message de confirmation et la mention sur le détail de l'incident.
+
+### Nos choix
+
+- **Confirmation :** si on choisit un prestataire surveillé, le serveur refuse (erreur 409) et rien n'est enregistré. La page affiche alors un message avec « Confirmer l'affectation » et « Annuler ». Si on confirme, la demande repart avec la confirmation.
+- **Calcul :** le statut n'est pas gardé en base, on le recalcule à chaque fois.
+- **Raccourci :** on fait une requête par prestataire au lieu d'une seule pour tous. C'est plus simple et ça suffit pour notre projet.
+
+### Tests et limites
+
+- **Tests backend :**
+  - `PrestataireServiceTest` : les 7 exemples du sujet
+  - `IncidentServiceTest` : affectation avec et sans confirmation
+  - `IncidentControllerAffectationTest` : erreur 409 et envoi de la confirmation
+  - 
+- **Limites :**
+  - La requête des 5 dernières notes n'a pas de test automatique, on l'a vérifiée à la main.
+  - Si un prestataire devient surveillé alors que la page est ouverte, le bouton de confirmation n'apparaît pas : il faut recharger la page.
