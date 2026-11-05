@@ -1,5 +1,6 @@
 package fr.efrei2026.springfield.services;
 
+import fr.efrei2026.springfield.exceptions.ConfirmationSurveillanceRequiseException;
 import fr.efrei2026.springfield.exceptions.EquipementIntrouvableException;
 import fr.efrei2026.springfield.exceptions.IncidentDejaResoluException;
 import fr.efrei2026.springfield.exceptions.IncidentIntrouvableException;
@@ -15,6 +16,7 @@ import fr.efrei2026.springfield.repositories.IncidentRepository;
 import fr.efrei2026.springfield.repositories.PrestataireRepository;
 import fr.efrei2026.springfield.services.impls.IncidentService;
 import fr.efrei2026.springfield.services.interfaces.IEquipementService;
+import fr.efrei2026.springfield.services.interfaces.IPrestataireService;
 import fr.efrei2026.springfield.shared.dto.AffectationDto;
 import fr.efrei2026.springfield.shared.dto.DeclarationIncidentDto;
 import fr.efrei2026.springfield.shared.dto.IncidentDto;
@@ -42,9 +44,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,6 +63,7 @@ class IncidentServiceTest {
     private static final String FIN_DE_LIGNE = "\r\n";
     private static final LocalDateTime MAINTENANT = LocalDateTime.of(2026, 11, 1, 10, 30);
     private static final int ID_INCIDENT = 7;
+    private static final int ID_PRESTATAIRE_SURVEILLE = 12;
     private static final Sort TRI_PAR_DEFAUT = Sort.by(Sort.Direction.DESC, "dateOuverture");
     private static final Pageable PAGINATION = PageRequest.of(0, 20, TRI_PAR_DEFAUT);
     private static final Pageable PAGINATION_AVEC_TRI_PAR_ID = PageRequest.of(0, 20, TRI_PAR_DEFAUT.and(Sort.by("id")));
@@ -70,12 +77,15 @@ class IncidentServiceTest {
     @Mock
     private IEquipementService equipementService;
 
+    @Mock
+    private IPrestataireService prestataireService;
+
     private IncidentService incidentService;
 
     @BeforeEach
     void creerServiceAvecHorlogeFixe() {
         Clock horlogeFixe = Clock.fixed(MAINTENANT.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        incidentService = new IncidentService(incidentRepository, prestataireRepository, equipementService, horlogeFixe);
+        incidentService = new IncidentService(incidentRepository, prestataireRepository, equipementService, prestataireService, horlogeFixe);
     }
 
     @Test
@@ -323,6 +333,89 @@ class IncidentServiceTest {
     }
 
     @Test
+    void affecter_prestataireSousSurveillanceSansConfirmationEstRefuseEtRienNEstEnregistre() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(2));
+        simulerPrestataireSurveille(incident);
+        when(prestataireService.estSousSurveillance(ID_PRESTATAIRE_SURVEILLE)).thenReturn(true);
+
+        ConfirmationSurveillanceRequiseException exception = assertThrows(ConfirmationSurveillanceRequiseException.class,
+                () -> incidentService.affecter(ID_INCIDENT, new AffectationDto(ID_PRESTATAIRE_SURVEILLE)));
+
+        assertEquals("Le prestataire « Dupont Réseaux » est sous surveillance : confirmez explicitement l'affectation pour continuer.",
+                exception.getMessage());
+        assertEquals(StatutIncident.OUVERT, incident.getStatut());
+        assertNull(incident.getPrestataire());
+        verify(incidentRepository, never()).save(any());
+    }
+
+    @Test
+    void affecter_prestataireSousSurveillanceAvecConfirmationEstAffecte() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(2));
+        Prestataire prestataire = simulerPrestataireSurveille(incident);
+        when(prestataireService.estSousSurveillance(ID_PRESTATAIRE_SURVEILLE)).thenReturn(true);
+
+        IncidentDto dto = incidentService.affecter(ID_INCIDENT, new AffectationDto(ID_PRESTATAIRE_SURVEILLE, true));
+
+        assertEquals(StatutIncident.AFFECTE, dto.getStatut());
+        assertEquals("Dupont Réseaux", dto.getPrestataire());
+        assertTrue(dto.isPrestataireSousSurveillance());
+        assertSame(prestataire, incident.getPrestataire());
+        verify(incidentRepository).save(incident);
+    }
+
+    @Test
+    void affecter_reaffecterVersUnPrestataireSousSurveillanceSansConfirmationConserveLePrestataireActuel() {
+        Prestataire prestataireActuel = new Prestataire("Otis Maintenance", null, null);
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(2));
+        incident.affecter(prestataireActuel);
+        simulerPrestataireSurveille(incident);
+        when(prestataireService.estSousSurveillance(ID_PRESTATAIRE_SURVEILLE)).thenReturn(true);
+
+        assertThrows(ConfirmationSurveillanceRequiseException.class,
+                () -> incidentService.affecter(ID_INCIDENT, new AffectationDto(ID_PRESTATAIRE_SURVEILLE)));
+
+        assertSame(prestataireActuel, incident.getPrestataire());
+        verify(incidentRepository, never()).save(any());
+    }
+
+    @Test
+    void affecter_incidentResoluEstRefuseAvantDeDemanderLaConfirmationDeSurveillance() {
+        Incident incident = creerIncidentResolu(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée",
+                MAINTENANT.minusHours(5), MAINTENANT.minusHours(1), null);
+        simulerPrestataireSurveille(incident);
+
+        assertThrows(IncidentDejaResoluException.class,
+                () -> incidentService.affecter(ID_INCIDENT, new AffectationDto(ID_PRESTATAIRE_SURVEILLE)));
+
+        verify(prestataireService, never()).estSousSurveillance(anyInt());
+        verify(incidentRepository, never()).save(any());
+    }
+
+    @Test
+    void trouverIncident_incidentAffecteAUnPrestataireSousSurveillanceLeSignale() {
+        Incident incident = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(2));
+        incident.affecter(creerPrestataireSurveille());
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.of(incident));
+        when(prestataireService.estSousSurveillance(ID_PRESTATAIRE_SURVEILLE)).thenReturn(true);
+
+        assertTrue(incidentService.trouverIncident(ID_INCIDENT).isPrestataireSousSurveillance());
+    }
+
+    @Test
+    void trouverIncident_incidentNonAffecteOuResoluNInterrogePasLaSurveillance() {
+        Incident nonAffecte = new Incident(creerEquipement("ASC-001", "Gare du Nord"), "Porte bloquée", MAINTENANT.minusHours(2));
+        Incident resolu = creerIncidentResolu(creerEquipement("ASC-002", "Gare du Nord"), "Porte bloquée",
+                MAINTENANT.minusHours(5), MAINTENANT.minusHours(1), creerPrestataireSurveille());
+        when(incidentRepository.findById(1)).thenReturn(Optional.of(nonAffecte));
+        when(incidentRepository.findById(2)).thenReturn(Optional.of(resolu));
+
+        assertFalse(incidentService.trouverIncident(1).isPrestataireSousSurveillance());
+        assertFalse(incidentService.trouverIncident(2).isPrestataireSousSurveillance());
+
+        verify(prestataireService, never()).estSousSurveillance(anyInt());
+    }
+
+    @Test
     void exporterHistorique_ecritUneLigneParIncidentResolu() {
         Equipement ascenseur = creerEquipement("ASC-001", "Gare du Nord");
         Equipement portique = creerEquipement("PORT-012", "Part-Dieu");
@@ -364,6 +457,19 @@ class IncidentServiceTest {
 
     private Equipement creerEquipement(String reference, String nomStation) {
         return new Equipement(reference, "Libellé " + reference, new TypeEquipement("Ascenseur"), new Station(nomStation));
+    }
+
+    private Prestataire creerPrestataireSurveille() {
+        Prestataire prestataire = new Prestataire("Dupont Réseaux", null, null);
+        ReflectionTestUtils.setField(prestataire, "id", ID_PRESTATAIRE_SURVEILLE);
+        return prestataire;
+    }
+
+    private Prestataire simulerPrestataireSurveille(Incident incident) {
+        Prestataire prestataire = creerPrestataireSurveille();
+        when(incidentRepository.findById(ID_INCIDENT)).thenReturn(Optional.of(incident));
+        when(prestataireRepository.findById(ID_PRESTATAIRE_SURVEILLE)).thenReturn(Optional.of(prestataire));
+        return prestataire;
     }
 
     private Prestataire creerPrestataire() {
