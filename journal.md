@@ -89,7 +89,7 @@
 
 - **Contribution de chacun :**
   - Luc : authentification, évaluation (F10), tableau de bord (F11), API REST (F12), lot alpha
-  - Jessy : script de base initial, équipements et stations (F2, F3), cycle de vie des incidents (F4 à F9)
+  - Jessy : script de base initial, équipements et stations (F2, F3), cycle de vie des incidents (F4 à F9) et déploiement de l'application
 - **Plus grande difficulté et comment elle a été surmontée :** le manque de temps, on s'est donc concentrés sur le socle et les lots alpha faisables. On a aussi perdu du temps sur le déploiement et sur les conflits Git, par manque d'organisation des branches : des DTO changés après un merge dans `develop` pouvaient casser le frontend, qu'on a alors réaligné.
 - **Fonctionnalités non réalisées et pourquoi :**
   - Cartographie : choisir une bibliothèque et faire un POC prenait trop de temps.
