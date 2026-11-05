@@ -184,7 +184,11 @@ INSERT INTO incident (id, equipement_id, description, date_ouverture, statut, pr
     (30, 5, 'Écran qui redémarre en boucle.', NOW() - INTERVAL 26 HOUR, 'RESOLU', 4, NOW() - INTERVAL 2 HOUR),
     (31, 11, 'Moitié basse de l''écran restée noire.', NOW() - INTERVAL 20 HOUR, 'OUVERT', NULL, NULL),
     (32, 1, 'Cabine bloquée entre deux niveaux, aucun usager à l''intérieur.', NOW() - INTERVAL 3 HOUR, 'AFFECTE', 1, NULL),
-    (33, 4, 'Écran tactile figé, impossible de sélectionner un titre.', NOW() - INTERVAL 2 HOUR, 'OUVERT', NULL, NULL);
+    (33, 4, 'Écran tactile figé, impossible de sélectionner un titre.', NOW() - INTERVAL 2 HOUR, 'OUVERT', NULL, NULL),
+    (34, 10, 'Vibrations importantes au démarrage de l''escalier.', NOW() - INTERVAL '9 06:20' DAY_MINUTE, 'RESOLU', 2, NOW() - INTERVAL '8 09:10' DAY_MINUTE),
+    (35, 19, 'Arrêt brutal de l''escalier aux heures de pointe.', NOW() - INTERVAL '7 14:00' DAY_MINUTE, 'RESOLU', 2, NOW() - INTERVAL '5 10:40' DAY_MINUTE),
+    (36, 24, 'Bandeau lumineux du trottoir roulant éteint.', NOW() - INTERVAL '19 10:15' DAY_MINUTE, 'RESOLU', 5, NOW() - INTERVAL '18 15:30' DAY_MINUTE),
+    (37, 26, 'Portique qui refuse les titres de transport valides.', NOW() - INTERVAL '11 09:05' DAY_MINUTE, 'RESOLU', 5, NOW() - INTERVAL '10 13:20' DAY_MINUTE);
 
 INSERT INTO evaluation (id, incident_id, note, commentaire, date_evaluation) VALUES
     (1, 1, 4, 'Intervention rapide, portique remis en service dans la journée.', NOW() - INTERVAL '73 10:00' DAY_MINUTE),
@@ -202,4 +206,8 @@ INSERT INTO evaluation (id, incident_id, note, commentaire, date_evaluation) VAL
     (13, 13, 3, 'Moteur remplacé, mais quatre jours d''immobilisation.', NOW() - INTERVAL '14 17:00' DAY_MINUTE),
     (14, 14, 5, 'Intervention exemplaire sur un équipement de sécurité.', NOW() - INTERVAL '13 09:00' DAY_MINUTE),
     (15, 16, 4, 'Lecteur changé rapidement.', NOW() - INTERVAL '8 10:00' DAY_MINUTE),
-    (16, 20, 2, 'Le portique se bloque encore ponctuellement.', NOW() - INTERVAL '2 09:00' DAY_MINUTE);
+    (16, 20, 2, 'Le portique se bloque encore ponctuellement.', NOW() - INTERVAL '2 09:00' DAY_MINUTE),
+    (17, 34, 2, 'Vibrations toujours présentes après l''intervention.', NOW() - INTERVAL '7 16:00' DAY_MINUTE),
+    (18, 35, 2, 'Deux interventions nécessaires pour le même défaut.', NOW() - INTERVAL '4 11:00' DAY_MINUTE),
+    (19, 36, 3, 'Réparation correcte, délai un peu long.', NOW() - INTERVAL '17 09:00' DAY_MINUTE),
+    (20, 37, 3, NULL, NOW() - INTERVAL '9 10:00' DAY_MINUTE);
